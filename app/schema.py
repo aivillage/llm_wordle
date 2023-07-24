@@ -49,6 +49,7 @@ class Challenge(Base):
                         headers={'Authorization': f'Bearer {self.model.key}'},
                         json={'inputs': full_prompt, "parameters" : parameters, "stream:": False})
         json_response = raw_response.json()
+        print(json_response)
         generated_text = json_response[0]['generated_text']
         return Generation(prompt=prompt, generation=generated_text, challenge=self)
     
@@ -77,7 +78,7 @@ class User(Base):
 
 
 
-engine = create_engine("sqlite://", echo=True) 
+engine = create_engine("sqlite://") 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base.metadata.create_all(engine)

@@ -30,8 +30,8 @@ with SessionLocal() as session:
         prompt_format="{preprompt}<|prompter|>{prompt}<|endoftext|><|assistant|>",
     )
     challenge = Challenge(name="Test", description="Test", preprompt="This is a test", model=model)
+    session.add(challenge)
     session.commit()
-    print(session.query(Generation).all())
     create_user(session, "test", "test")
 
 

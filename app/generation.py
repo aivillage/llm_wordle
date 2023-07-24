@@ -8,6 +8,7 @@ from .schema import Challenge, SessionLocal
 router = APIRouter()
 log = getLogger(__name__)
 
+
 class GenerateRequest(BaseModel):
     prompt: str
 

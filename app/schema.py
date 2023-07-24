@@ -6,10 +6,14 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 import json
 from logging import getLogger
 from requests import post
 log = getLogger(__name__)
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 
 class Base(DeclarativeBase):
     pass
@@ -67,6 +71,13 @@ class Model(Base):
 class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str]
+    username: Mapped[str] = mapped_column(unique=True)
     hashed_password: Mapped[str]
     disabled: Mapped[bool]
+
+
+
+engine = create_engine("sqlite://", echo=True) 
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base.metadata.create_all(engine)

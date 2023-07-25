@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "admin_nav.html" %}
+
+<div class="justify-center">
+    <form class="space-y-6 sm:max-w-lg" action="#" method="POST">
+      <div>
+        <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Challenge Name</label>
+        <div class="mt-2">
+          <input id="name" name="name" type="name" autocomplete="name" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between">
+          <label for="description" class="block text-sm font-medium leading-6 text-gray-900">Description</label>
+        </div>
+        <div class="mt-2">
+            <textarea x-model="input" rows="6" name="description" id="description" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between">
+          <label for="preprompt" class="block text-sm font-medium leading-6 text-gray-900">PrePrompt</label>
+        </div>
+        <div class="mt-2">
+            <textarea x-model="input" rows="6" name="preprompt" id="preprompt" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <button type="submit" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Create</button>
+      </div>
+    </form>
+  </div>
+
+{% endblock %}

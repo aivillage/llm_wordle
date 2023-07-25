@@ -1,0 +1,16 @@
+<!doctype html>
+<html class="h-full bg-white">
+<head>
+    <title>LLM Challenge of the Day</title>
+    <link rel="shortcut icon" href="{{ url_for('static', path='/img/favicon.ico') }}">
+    <link href="{{ url_for('static', path='/css/styles.css') }}" rel="stylesheet">
+</head>
+<body class="h-full">
+    <main>
+    {% block content %}
+    {% endblock %}
+    </main>
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

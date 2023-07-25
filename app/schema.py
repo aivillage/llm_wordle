@@ -6,6 +6,9 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import object_session
+from sqlalchemy import select, func
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 import json
@@ -25,6 +28,7 @@ class Generation(Base):
     prompt: Mapped[str]
     generation: Mapped[Optional[str]]
     challenge: Mapped["Challenge"] = relationship()
+    submitted: Mapped[bool] = mapped_column(default=False)
 
     def __repr__(self) -> str:
         return f"Generation(id={self.id!r}, challenge={self.challenge!r}, prompt={self.prompt!r})"
@@ -36,6 +40,7 @@ class Challenge(Base):
     name: Mapped[str]
     description: Mapped[str]
     preprompt: Mapped[str]
+    enabled: Mapped[bool] = mapped_column(default=True)
     model: Mapped["Model"] = relationship()
 
     def __repr__(self) -> str:
@@ -53,7 +58,19 @@ class Challenge(Base):
         generated_text = json_response[0]['generated_text']
         return Generation(prompt=prompt, generation=generated_text, challenge=self)
     
+    @property
+    def generation_count(self):
+        return object_session(self).scalar(
+            
+        )
+
     
+    @property
+    def submission_count(self):
+        return object_session(self).scalar(
+            select(func.count(Generation.id)).where(Generation.challenge_id == self.id and Generation.submitted == True)
+        )
+
 class Model(Base):
     __tablename__ = "model"
     id: Mapped[int] = mapped_column(primary_key=True)

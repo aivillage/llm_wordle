@@ -45,7 +45,7 @@ async def get_challenge():
         )
     
 class SubmitRequest(BaseModel):
-    generation_id: str
+    generation_id: int
 
 class SubmitResponse(BaseModel):
     message: str
@@ -55,4 +55,5 @@ async def submit(request: SubmitRequest) -> SubmitResponse:
     with SessionLocal() as session:
         generation = session.query(Generation).filter(Generation.id == request.generation_id).first()
         generation.submitted = True
+        session.commit()
     return SubmitResponse(message="Thanks for submitting!")

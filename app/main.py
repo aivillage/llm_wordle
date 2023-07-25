@@ -39,8 +39,10 @@ def load_models(path):
                 url=model["url"],
                 parameters=json.dumps(model["parameters"]),
                 prompt_format=model["prompt_format"],
+                key=settings.HUGGINGFACE_API_KEY,
             )
             session.add(model)
+        session.commit()
 
 
 def load_challenges(path):
@@ -65,9 +67,10 @@ def load_challenges(path):
                 description=challenge["description"],
                 preprompt=challenge["preprompt"],
                 model=model,
-                enabled=challenge["enabled"],
             )
+            print(f"Adding challenge {challenge.name}")
             session.add(challenge)
+        session.commit()
 
 
 if os.path.exists(settings.INITIAL_MODEL_FILE):
@@ -80,7 +83,11 @@ if os.path.exists(settings.INITIAL_CHALENGE_FILE):
     load_challenges(settings.INITIAL_CHALENGE_FILE)
 else:
     print(f"Challenges file not found at {settings.INITIAL_CHALENGE_FILE}")
-
+if os.path.exists(settings.INITIAL_USER_FILE):
+    print(f"Loading users from {settings.INITIAL_USER_FILE}")
+    load_users(settings.INITIAL_USER_FILE)
+else:
+    print(f"Users file not found at {settings.INITIAL_USER_FILE}")
 
 app.include_router(auth_router)
 app.include_router(generation_router, prefix="/api")

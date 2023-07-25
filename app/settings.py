@@ -5,6 +5,9 @@ from dataclasses import dataclass
 class Settings:
     SECRET_KEY: str = "secret-key"
     HUGGINGFACE_API_KEY: str = "huggingface-api-key"
+    INITIAL_CHALENGE_FILE: str = "challenges.json"
+    INITIAL_MODEL_FILE: str = "models.json"
+    INITIAL_USER_FILE: str = "users.json"
 
     def __init__(self):
         try:

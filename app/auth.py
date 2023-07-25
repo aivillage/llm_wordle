@@ -194,3 +194,18 @@ async def login(request: Request):
         form.__dict__.get("errors").append("Incorrect Email or Password")
         return templates.TemplateResponse("login.html", {"request": request})
 
+
+# A simple CLI to add/remove keys.
+def main():
+    print("Editing Keystore")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--user", type=str, required=True, help="Add user.")
+    parser.add_argument("--password", type=str, required=True, help="Password for user.")
+    
+    args = parser.parse_args()
+    with SessionLocal() as session:
+        create_user(session, args.user, args.password)
+
+if __name__ == '__main__':
+    main()

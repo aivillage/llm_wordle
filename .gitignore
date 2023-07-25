@@ -1,4 +1,7 @@
 .settings.json
+users.json
+challenges.json
+models.json
 app/static
 
 # Logs

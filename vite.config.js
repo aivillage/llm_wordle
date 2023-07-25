@@ -16,10 +16,6 @@ export default defineConfig({
               src: "./assets/img/**",
               dest: "app/static/img",
             },
-            {
-              src: "./assets/css/**",
-              dest: "app/static/css",
-            },
           ],
           hook: "writeBundle",
         }),

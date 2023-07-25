@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 import random
 
-from .schema import Challenge, SessionLocal
+from .schema import Challenge, Generation, SessionLocal
 router = APIRouter()
 log = getLogger(__name__)
 
@@ -23,7 +23,7 @@ class ChallengeResponse(BaseModel):
 
 @router.post("/generate/{challenge_id}")
 async def generate(challenge_id: int, request: GenerateRequest) -> GenerateResponse:
-    log.info(f"Generating with prompt: {request.prompt}")
+    print(f"Generating with prompt: {request.prompt}")
     with SessionLocal() as session:
         challenge = session.query(Challenge).filter(Challenge.id == challenge_id).first()
         generation = challenge.generate(request.prompt)
@@ -43,3 +43,16 @@ async def get_challenge():
             name=challenge.name,
             description=challenge.description,
         )
+    
+class SubmitRequest(BaseModel):
+    generation_id: str
+
+class SubmitResponse(BaseModel):
+    message: str
+    
+@router.post("/submit/")
+async def submit(request: SubmitRequest) -> SubmitResponse:
+    with SessionLocal() as session:
+        generation = session.query(Generation).filter(Generation.id == request.generation_id).first()
+        generation.submitted = True
+    return SubmitResponse(message="Thanks for submitting!")

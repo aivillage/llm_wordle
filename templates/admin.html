@@ -37,9 +37,9 @@
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ challenge.num_generations }}</td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ challenge.num_submissions }}</td>
                 {% if challenge.enabled %}
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-green-500">Enabled</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-green-500"><a href="{{ url_for('toggle_challenge', challenge_id = challenge.id) }}">Enabled</a></td>
                 {% else %}
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-red-500">Disabled</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-red-500"><a href="{{ url_for('toggle_challenge', challenge_id = challenge.id) }}">Disabled</a></td>
                 {% endif %}
                 <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                   <a href="{{ url_for('challenge_generations', challenge_id = challenge.id) }}" class="text-indigo-600 hover:text-indigo-900">View</a>

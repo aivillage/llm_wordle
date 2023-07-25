@@ -18,7 +18,7 @@ async def admin_root(request: Request):
         final_challenges = []
         for challenge in challenges:
             num_generations = session.query(func.count(Generation.id)).filter(Generation.challenge_id == challenge[0]).scalar()
-            num_submissions = session.query(func.count(Generation.id)).filter(Generation.challenge_id == challenge[0] and Generation.submitted).scalar()
+            num_submissions = session.query(func.count(Generation.id)).filter(Generation.challenge_id == challenge[0]).filter(Generation.submitted).scalar()
             final_challenges.append({
                 "id": challenge[0],
                 "name": challenge[1],
@@ -97,7 +97,7 @@ async def challenge_generations(challenge_id: int, request: Request):
         all_generations = session.query(Generation).all()
         print(all_generations)
         # gets all generations for all challenges
-        query = select(Generation.id, Generation.prompt, Generation.generation, Generation.submitted, Challenge.name).add_columns(Challenge.name).join(Challenge).where(Generation.challenge_id == challenge_id)
+        query = select(Generation.id, Generation.prompt, Generation.generation, Generation.reason, Generation.submitted, Challenge.name).add_columns(Challenge.name).join(Challenge).where(Generation.challenge_id == challenge_id)
         generations = session.execute(query).all()
         final_generations = []
         for generation in generations:
@@ -106,14 +106,15 @@ async def challenge_generations(challenge_id: int, request: Request):
                 "prompt": generation[1],
                 "generation": generation[2],
                 "submitted": generation[3],
-                "challenge": generation[4],
+                "reason": generation[4],
+                "challenge": generation[5],
             })
 
         model_name_alias = aliased(Model, name="model_name")
         query = select(Challenge.id, Challenge.name, Challenge.description, Challenge.preprompt, Challenge.enabled).add_columns(model_name_alias.name).join(model_name_alias).where(Challenge.id == challenge_id)
         challenge = session.execute(query).first()
-        num_generations = session.query(func.count(Generation.id)).filter(Generation.challenge_id == challenge_id).scalar()
-        num_submissions = session.query(func.count(Generation.id)).filter(Generation.challenge_id == challenge_id and Generation.submitted).scalar()
+        num_generations = session.query(func.count()).filter(Generation.challenge_id == challenge_id).scalar()
+        num_submissions = session.query(func.count()).filter(Generation.challenge_id == challenge_id).filter(Generation.submitted == True).scalar()
             
         final_challenge = {
             "id": challenge[0],
@@ -126,3 +127,11 @@ async def challenge_generations(challenge_id: int, request: Request):
             "num_submissions": num_submissions,
         }        
     return templates.TemplateResponse("generations.html", {"request": request, "challenge": final_challenge, "generations": final_generations})
+
+@router.get("/toggle_challenge/{challenge_id}")
+async def toggle_challenge(challenge_id: int):
+    with SessionLocal() as session:
+        challenge = session.query(Challenge).filter(Challenge.id == challenge_id).first()
+        challenge.enabled = not challenge.enabled
+        session.commit()
+    return RedirectResponse(f"/admin/", status.HTTP_302_FOUND)

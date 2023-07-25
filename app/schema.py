@@ -26,9 +26,11 @@ class Generation(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     challenge_id: Mapped[int] = mapped_column(ForeignKey("challenge.id"))
     prompt: Mapped[str]
-    generation: Mapped[Optional[str]]
+    generation: Mapped[str]
     challenge: Mapped["Challenge"] = relationship()
     submitted: Mapped[bool] = mapped_column(default=False)
+    reason: Mapped[Optional[str]]
+    reported: Mapped[bool] = mapped_column(default=False)
 
     def __repr__(self) -> str:
         return f"Generation(id={self.id!r}, challenge={self.challenge!r}, prompt={self.prompt!r})"
@@ -57,19 +59,6 @@ class Challenge(Base):
         print(json_response)
         generated_text = json_response[0]['generated_text']
         return Generation(prompt=prompt, generation=generated_text, challenge=self)
-    
-    @property
-    def generation_count(self):
-        return object_session(self).scalar(
-            
-        )
-
-    
-    @property
-    def submission_count(self):
-        return object_session(self).scalar(
-            select(func.count(Generation.id)).where(Generation.challenge_id == self.id and Generation.submitted == True)
-        )
 
 class Model(Base):
     __tablename__ = "model"

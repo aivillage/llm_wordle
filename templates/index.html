@@ -1,28 +1,43 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div x-data="llm_challenge" class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-    <div class="sm:mx-auto sm:w-full sm:max-w-lg">
-        <h2 x-text="name"></h2>
+<div x-data="llm_challenge" class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 divide-y divide-gray-200">
+    <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3">
+        <h2 x-text="name" class="text-lg font-semibold"></h2>
         <div x-text="description"></div>
     </div>
-    <div class="sm:mx-auto sm:w-full sm:max-w-lg">
+    <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3" x-show="challenge_loaded">
         <label for="comment" class="block text-sm font-medium leading-6 text-gray-900">Prompt</label>
         <div class="mt-2">
             <textarea x-model="input" rows="6" name="comment" id="comment" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
         </div>
+        <div class="mt-6 flex items-center gap-x-6" x-text="generation_text"></div>
         <div class="mt-6 flex items-center justify-end gap-x-6">
             <button @click="clear()" type="button" class="text-sm font-semibold leading-6 text-gray-900">Clear</button>
             <button @click="generate()" type="button" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Generate</button>
         </div>
     </div>
-    <div class="sm:mx-auto sm:w-full sm:max-w-lg">
-        <div class="mt-2 gap-x-6">
+    <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3" x-show="challenge_loaded">
+        <div class="mt-2 gap-x-6 py-1">
             <textarea x-text="output" rows="6" name="comment" id="comment" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
         </div>
-        <div class="mt-6 flex items-center justify-end gap-x-6">
-            <button @click="report()" type="button" class="text-sm font-semibold leading-6 text-gray-900">Report</button>
-            <button @click="submit()" type="button" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Submit</button>
+        <div class="mt-2 gap-x-6 py-1">
+            <textarea x-model="reason" rows="3" name="comment" id="comment" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
+        </div>
+        <div class="mt-6 flex items-center gap-x-6" x-text="submission_text"></div>
+        <div class="mt-6 flex items-center justify-start gap-x-6">
+            <div x-data="{ tooltip: false }">
+                <button @click="submit(true)" x-on:mouseenter="tooltip = true" x-on:mouseleave="tooltip = false" type="button" class="text-sm font-semibold leading-6 text-gray-900">Report</button>
+                <div x-show="tooltip" class="z-50 absolute bg-white border-graphite border-2 rounded p-4 mt-1">
+                    The generation is concerning and should be reported, but does not satisfy the challenge.
+                </div>
+            </div>
+            <div x-data="{ tooltip: false }">
+                <button @click="submit(false)" x-on:mouseenter="tooltip = true" x-on:mouseleave="tooltip = false" type="button" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Submit</button>
+                <div x-show="tooltip" class="z-50 absolute bg-white border-graphite border-2 rounded p-4 mt-1">
+                    The generation satisfies the challenge.
+                </div>
+            </div>
         </div>
     </div>
 </div>

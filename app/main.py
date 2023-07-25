@@ -31,6 +31,10 @@ with SessionLocal() as session:
     )
     challenge = Challenge(name="Test", description="Test", preprompt="This is a test", model=model)
     session.add(challenge)
+    challenge = Challenge(name="Test2", description="Test2", preprompt="This is test 2", model=model)
+    session.add(challenge)
+    challenge = Challenge(name="Test3", description="Test3", preprompt="This is test 3", model=model, enabled=False)
+    session.add(challenge)
     session.commit()
     create_user(session, "test", "test")
 

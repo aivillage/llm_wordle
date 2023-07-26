@@ -1,11 +1,11 @@
 from fastapi import Depends
-from ..schema import Challenge, Model
+from ..public.schema import Challenge, Model
 from .admin import router as admin_router
 import os, json
 
 from .auth import auth_router, get_current_active_user, create_user
 from .settings import settings, SessionLocal
-from ..main import user_app
+from ..public.main import app as user_app
 
 
 def load_users(path):

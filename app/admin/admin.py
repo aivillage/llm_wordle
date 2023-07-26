@@ -2,8 +2,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Request, status
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
-from ..schema import Generation, Challenge, Model
-from ..settings import SessionLocal
+from ..public.schema import Generation, Challenge, Model
+from .settings import SessionLocal
 from sqlalchemy import select, func
 from sqlalchemy.orm import aliased
 

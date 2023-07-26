@@ -1,0 +1,49 @@
+FROM python:3.10-slim-bookworm as build
+
+WORKDIR /opt/llm_wordle
+
+# hadolint ignore=DL3008
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        libffi-dev \
+        libssl-dev \
+        git \
+        nodejs \
+        npm \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m venv /opt/venv
+
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY . /opt/llm_wordle
+
+RUN pip install --no-cache-dir -r requirements.txt
+RUN /bin/bash build.sh
+
+FROM python:3.10-slim-bookworm as release
+WORKDIR /opt/llm_wordle
+
+# hadolint ignore=DL3008
+
+
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/static /opt/llm_wordle/app/static
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/public /opt/llm_wordle/app/public
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/__init__.py /opt/llm_wordle/app/__init__.py
+
+
+RUN useradd \
+    --no-log-init \
+    --shell /bin/bash \
+    -u 1001 \
+    llm_wordle \
+    && mkdir -p /var/log/llm_wordle /var/uploads \
+    && chown -R 1001:1001 /var/log/llm_wordle /var/uploads /opt/llm_wordle
+
+COPY --chown=1001:1001 --from=build /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+USER 1001
+EXPOSE 8000
+ENTRYPOINT ["uvicorn --factory app.public.main:app"]

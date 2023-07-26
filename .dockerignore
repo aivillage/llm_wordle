@@ -1,0 +1,12 @@
+.data
+app/static
+conf_templates
+.node_modules
+Dockerfile
+.dockerignore
+.gitignore
+**/node_modules
+**/*.pyc
+**/__pycache__
+.venv*
+venv*

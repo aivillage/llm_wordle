@@ -1,0 +1,56 @@
+version: '2'
+
+services:
+  llm_wordle:
+    build: .
+    user: root
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - .data/llm_wordle/logs:/var/log/llm_wordle
+      - .data/llm_wordle/uploads:/var/uploads
+      - .:/opt/llm_wordle:ro
+    depends_on:
+      - db
+    networks:
+        default:
+        internal:
+
+  nginx:
+    image: nginx:stable
+    restart: always
+    volumes:
+      - ./conf/nginx/http.conf:/etc/nginx/nginx.conf
+    ports:
+      - 80:80
+    depends_on:
+      - llm_wordle
+
+  db:
+    image: mariadb:10.4.12
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=llm_wordle
+      - MYSQL_USER=llm_wordle
+      - MYSQL_PASSWORD=llm_wordle
+      - MYSQL_DATABASE=llm_wordle
+    volumes:
+      - .data/mysql:/var/lib/mysql
+    networks:
+        internal:
+    # This command is required to set important mariadb defaults
+    command: [mysqld, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --wait_timeout=28800, --log-warnings=0]
+
+  cache:
+    image: redis:4
+    restart: always
+    volumes:
+    - .data/redis:/data
+    networks:
+        internal:
+
+networks:
+    default:
+    internal:
+        internal: true

@@ -1,5 +1,6 @@
 conf
 app/static
+.data
 
 # Logs
 logs

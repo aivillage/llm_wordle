@@ -2,12 +2,15 @@ from typing import List, Optional
 from fastapi import APIRouter, Request, status
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
-from .schema import SessionLocal, Generation, Challenge, Model
+from ..schema import Generation, Challenge, Model
+from ..settings import SessionLocal
 from sqlalchemy import select, func
 from sqlalchemy.orm import aliased
-from pprint import pprint
+
+
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+
 
 @router.get("/")
 async def admin_root(request: Request):

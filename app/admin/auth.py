@@ -10,7 +10,7 @@ from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from .schema import User, SessionLocal
+from ..schema import User
 from fastapi.templating import Jinja2Templates
 from .settings import settings
 

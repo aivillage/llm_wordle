@@ -2,6 +2,8 @@
 Challenges for LLM
 
 # Building
+Copy `conf_templates` to `conf` and fill out the settings you want.
+
 In one terminal run `pip install -r requirements.txt`, then `uvicorn users:app --reload`
 
 To build the javascript and move everything into the correct static directory run `./build.sh`. Rerun this to rebuild the js. This needs `npm`

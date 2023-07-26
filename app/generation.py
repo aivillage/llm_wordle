@@ -1,28 +1,44 @@
 from logging import getLogger
 from typing import Optional
+from fastapi.templating import Jinja2Templates
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
-import random
+import random, os, json
 
-from .schema import Challenge, Generation, SessionLocal
+from .schema import Challenge, Generation
+from .settings import SessionLocal
 router = APIRouter()
 log = getLogger(__name__)
+templates = Jinja2Templates(directory="templates")
+
+
+@router.get("/")
+async def root(request: Request):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(dir_path, "static/manifest.json")) as f:
+        assets = json.load(f)
+    js_path = assets["assets/js/index.js"]["file"]
+
+    return templates.TemplateResponse("index.html", {"request": request, "js_path": js_path})
 
 
 class GenerateRequest(BaseModel):
     prompt: str
+
 
 class GenerateResponse(BaseModel):
     generation: str = ""
     id: int = -1 
     error: Optional[str] = None 
 
+
 class ChallengeResponse(BaseModel):
     id: int
     name: str
     description: str
     error: Optional[str] = None
+
 
 @router.post("/generate/{challenge_id}")
 async def generate(challenge_id: int, request: GenerateRequest) -> GenerateResponse:

@@ -1,25 +1,21 @@
-from typing import List
 from typing import Optional
 from sqlalchemy import ForeignKey
-from sqlalchemy import String
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm import object_session
-from sqlalchemy import select, func
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 import json
 from logging import getLogger
 from requests import post
 log = getLogger(__name__)
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 
 class Base(DeclarativeBase):
     pass
+
 
 class Generation(Base):
     __tablename__ = "generation"
@@ -34,6 +30,7 @@ class Generation(Base):
 
     def __repr__(self) -> str:
         return f"Generation(id={self.id!r}, challenge={self.challenge!r}, prompt={self.prompt!r})"
+
 
 class Challenge(Base):
     __tablename__ = "challenge"
@@ -60,6 +57,7 @@ class Challenge(Base):
         generated_text = json_response[0]['generated_text']
         return Generation(prompt=prompt, generation=generated_text, challenge=self)
 
+
 class Model(Base):
     __tablename__ = "model"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -75,6 +73,7 @@ class Model(Base):
     def full_prompt(self, preprompt: str, prompt: str) -> str:
         return self.prompt_format.replace("{preprompt}", preprompt).replace("{prompt}", prompt)
 
+
 class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -83,8 +82,11 @@ class User(Base):
     disabled: Mapped[bool]
 
 
-
-engine = create_engine("sqlite://") 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base.metadata.create_all(engine)
+def connect_db(config: Optional[dict] = None):
+    if config is None:
+        engine = create_engine("sqlite://")
+    else:
+        engine = create_engine(config["database_url"])
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    Base.metadata.create_all(engine)
+    return SessionLocal

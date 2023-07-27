@@ -86,7 +86,6 @@ def get_generations(session: SessionLocal, request: Request, challenge_id: Optio
         filter["reported"] = True
     elif request.query_params.get("reported", None) == "False":
         filter["reported"] = False
-    log.info(filter)
     query = select(
         Generation.id,
         Generation.prompt,

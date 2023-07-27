@@ -78,9 +78,18 @@ async def new_challenge(request: Request):
 async def view_generations(request: Request):
     with SessionLocal() as session:
         all_generations = session.query(Generation).all()
-        print(all_generations)
+        filter = {}
+        if request.query_params.get("sumbitted", None) == "true":
+            filter = {"submitted": True}
+        elif request.query_params.get("sumbitted", None) == "false":
+            filter = {"submitted": False}
+        elif request.query_params.get("reported", None) == "true":
+            filter = {"reported": True}
+        elif request.query_params.get("reported", None) == "false":
+            filter = {"reported": False}
+
         # gets all generations for all challenges
-        query = select(Generation.id, Generation.prompt, Generation.generation, Generation.submitted, Challenge.name).add_columns(Challenge.name).join(Challenge)
+        query = select(Generation.id, Generation.prompt, Generation.generation, Generation.submitted, Challenge.name).add_columns(Challenge.name).filter(**filter).join(Challenge)
         generations = session.execute(query).all()
         final_generations = []
         for generation in generations:
@@ -98,7 +107,6 @@ async def view_generations(request: Request):
 async def challenge_generations(challenge_id: int, request: Request):
     with SessionLocal() as session:
         all_generations = session.query(Generation).all()
-        print(all_generations)
         # gets all generations for all challenges
         query = select(Generation.id, Generation.prompt, Generation.generation, Generation.reason, Generation.submitted, Challenge.name).add_columns(Challenge.name).join(Challenge).where(Generation.challenge_id == challenge_id)
         generations = session.execute(query).all()
@@ -112,9 +120,18 @@ async def challenge_generations(challenge_id: int, request: Request):
                 "reason": generation[4],
                 "challenge": generation[5],
             })
-
+        filter = {}
+        if request.query_params.get("sumbitted", None) == "true":
+            filter = {"submitted": True}
+        elif request.query_params.get("sumbitted", None) == "false":
+            filter = {"submitted": False}
+        elif request.query_params.get("reported", None) == "true":
+            filter = {"reported": True}
+        elif request.query_params.get("reported", None) == "false":
+            filter = {"reported": False}
+            
         model_name_alias = aliased(Model, name="model_name")
-        query = select(Challenge.id, Challenge.name, Challenge.description, Challenge.preprompt, Challenge.enabled).add_columns(model_name_alias.name).join(model_name_alias).where(Challenge.id == challenge_id)
+        query = select(Challenge.id, Challenge.name, Challenge.description, Challenge.preprompt, Challenge.enabled).add_columns(model_name_alias.name).join(model_name_alias).where(Challenge.id == challenge_id).filter(**filter)
         challenge = session.execute(query).first()
         num_generations = session.query(func.count()).filter(Generation.challenge_id == challenge_id).scalar()
         num_submissions = session.query(func.count()).filter(Generation.challenge_id == challenge_id).filter(Generation.submitted == True).scalar()

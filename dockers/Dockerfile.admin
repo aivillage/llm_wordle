@@ -28,10 +28,9 @@ WORKDIR /opt/llm_wordle
 # hadolint ignore=DL3008
 
 
-COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/static /opt/llm_wordle/app/static
-COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/public /opt/llm_wordle/app/public
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/ /opt/llm_wordle/app/
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/conf/ /opt/llm_wordle/conf/
 COPY --chown=1001:1001 --from=build /opt/llm_wordle/templates /opt/llm_wordle/templates
-COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/__init__.py /opt/llm_wordle/app/__init__.py
 COPY --chown=1001:1001 --from=build /opt/llm_wordle/public_settings.json /opt/llm_wordle/public_settings.json
 
 
@@ -49,4 +48,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 USER 1001
 EXPOSE 8000
-ENTRYPOINT ["uvicorn","--factory","app.public.main:app", "--host", "0.0.0.0"]
+ENTRYPOINT ["uvicorn","--factory","app.admin.main:app", "--host", "0.0.0.0"]

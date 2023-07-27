@@ -8,7 +8,7 @@
             <a href="{{ url_for('view_generations') }}" class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">All Generations</a>
             <a href="{{ url_for('view_generations') }}?submitted=True" class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">All Submissions</a>
             <a href="{{ url_for('view_generations') }}?reported=True" class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">All Reports</a>
-            <a href="{{ url_for('view_generations') }}?submitted=True" class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">All Duds</a>
+            <a href="{{ url_for('view_generations') }}?submitted=False&reported=False" class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">All Duds</a>
           </div>
         </div>
         <div class="flex items-center">

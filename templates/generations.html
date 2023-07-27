@@ -3,55 +3,8 @@
 {% block content %}
 {% include "admin_nav.html" %}
 
-{% if challenge %}
-<div class="px-4 sm:px-6 lg:px-8">
-  <div class="sm:flex sm:items-center">
-    <div class="sm:flex-auto">
-      <h1 class="text-base font-semibold leading-6 text-gray-900">Challenge</h1>
-    </div>
-  </div>
-  <div class="mt-8 flow-root">
-    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-      <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-        <table class="min-w-full divide-y divide-gray-300">
-          <thead>
-            <tr>
-              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 w-40">Name</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Description</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Preprompt</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-16">Model Name</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-5">Generations</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-5" >Submissions</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-5">Enabled</th>
-              <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0 w-5">
-                <span class="sr-only">View</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr>
-              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ challenge.name }}</td>
-              <td class="px-3 py-4 text-sm text-gray-500">{{ challenge.description }}</td>
-              <td class="px-3 py-4 text-sm text-gray-500">{{ challenge.preprompt }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ challenge.model }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ challenge.num_generations }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ challenge.num_submissions }}</td>
-              {% if challenge.enabled %}
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-green-500">Enabled</td>
-              {% else %}
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-red-500">Disabled</td>
-              {% endif %}
-              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                <a href="#" class="text-indigo-600 hover:text-indigo-900">View</a>
-              </td>
-            </tr>
-            <!-- More people... -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+{% if challenges %}
+{% include "view_challenges.html" %}
 {% endif %}
 
 <div class="px-4 sm:px-6 lg:px-8">
@@ -66,11 +19,12 @@
           <table class="min-w-full divide-y divide-gray-300">
             <thead>
               <tr>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-32">Challenge</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Prompt</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Generation</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Reason</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-36">Challenge</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Prompt</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Generation</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-56">Reason</th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-5">Submitted</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-5">Reported</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -84,6 +38,11 @@
                     <td class="whitespace-nowrap px-3 py-4 text-sm text-green-500">Submitted</td>
                 {% else %}
                     <td class="whitespace-nowrap px-3 py-4 text-sm text-red-500">Unsubmitted</td>
+                {% endif %}
+                {% if generation.reported %}
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-green-500">Reported</td>
+                {% else %}
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-red-500">Unreported</td>
                 {% endif %}
               </tr>
               {% endfor %}

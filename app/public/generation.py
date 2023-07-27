@@ -63,6 +63,8 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
             log.info("Duplicate generation found")
             return GenerateResponse(error="Duplicate prompt found, try something else.")
         challenge = session.query(Challenge).filter(Challenge.id == challenge_id).first()
+        if challenge is None:
+            return GenerateResponse(error="Challenge not found!")
         generation = await challenge_generate(challenge, request.prompt)
         session.add(generation)
         session.commit()
@@ -99,8 +101,11 @@ class SubmitResponse(BaseModel):
     
 @router.post("/submit/")
 async def submit(request: SubmitRequest) -> SubmitResponse:
+    log.info(f"Submitting generation {request.generation_id}")
     with SessionLocal() as session:
         generation = session.query(Generation).filter(Generation.id == request.generation_id).first()
+        if generation is None:
+            return SubmitResponse(message="Generation not found!", accepted=False)
         if generation.submitted:
             return SubmitResponse(message="Already submitted!", accepted=False)
         generation.submitted = True
@@ -110,8 +115,11 @@ async def submit(request: SubmitRequest) -> SubmitResponse:
 
 @router.post("/report/")
 async def submit(request: SubmitRequest) -> SubmitResponse:
+    log.info(f"Reporting generation {request.generation_id}")
     with SessionLocal() as session:
         generation = session.query(Generation).filter(Generation.id == request.generation_id).first()
+        if generation is None:
+            return SubmitResponse(message="Generation not found!", accepted=False)
         generation.reported = True
         generation.reason = request.reason
         session.commit()

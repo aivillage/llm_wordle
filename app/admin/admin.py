@@ -75,33 +75,47 @@ async def new_challenge(request: Request):
         form.__dict__.get("errors").append("I don't know what happened.")
         return templates.TemplateResponse("new_challenge.html", {"request": request})
 
+def get_generations(session: SessionLocal, request: Request, challenge_id: Optional[int] = None):
+    filter = {}
+    if request.query_params.get("submitted", None) == "True":
+        filter["submitted"] = True
+    elif request.query_params.get("submitted", None) == "False":
+        filter["submitted"] = False
+
+    if request.query_params.get("reported", None) == "True":
+        filter["reported"] = True
+    elif request.query_params.get("reported", None) == "False":
+        filter["reported"] = False
+    log.info(filter)
+    query = select(
+        Generation.id,
+        Generation.prompt,
+        Generation.generation,
+        Generation.reason,
+        Generation.submitted,
+        Generation.reported,
+        Challenge.name
+    ).filter_by(**filter).add_columns(Challenge.name).join(Challenge)
+    if challenge_id is not None:
+        query = query.where(Generation.challenge_id == challenge_id)
+    generations = session.execute(query).all()
+    final_generations = []
+    for generation in generations:
+        final_generations.append({
+            "id": generation[0],
+            "prompt": generation[1],
+            "generation": generation[2],
+            "reason": generation[3],
+            "submitted": generation[4],
+            "reportd": generation[5],
+            "challenge": generation[6],
+        })
+    return final_generations
 
 @router.get("/generations/")
 async def view_generations(request: Request):
     with SessionLocal() as session:
-        filter = {}
-        if request.query_params.get("sumbitted", None) == "true":
-            filter = {"submitted": True}
-        elif request.query_params.get("sumbitted", None) == "false":
-            filter = {"submitted": False}
-    
-        if request.query_params.get("reported", None) == "true":
-            filter = {"reported": True}
-        elif request.query_params.get("reported", None) == "false":
-            filter = {"reported": False}
-
-        # gets all generations for all challenges
-        query = select(Generation.id, Generation.prompt, Generation.generation, Generation.submitted, Challenge.name).add_columns(Challenge.name).filter(**filter).join(Challenge)
-        generations = session.execute(query).all()
-        final_generations = []
-        for generation in generations:
-            final_generations.append({
-                "id": generation[0],
-                "prompt": generation[1],
-                "generation": generation[2],
-                "submitted": generation[3],
-                "challenge": generation[4],
-            })
+        final_generations = get_generations(session, request)
 
     return templates.TemplateResponse("generations.html", {"request": request, "challenge": None, "generations": final_generations})
 
@@ -109,31 +123,10 @@ async def view_generations(request: Request):
 async def challenge_generations(challenge_id: int, request: Request):
     with SessionLocal() as session:
         # gets all generations for all challenges
-        query = select(Generation.id, Generation.prompt, Generation.generation, Generation.reason, Generation.submitted, Challenge.name).add_columns(Challenge.name).join(Challenge).where(Generation.challenge_id == challenge_id)
-        generations = session.execute(query).all()
-        final_generations = []
-        for generation in generations:
-            final_generations.append({
-                "id": generation[0],
-                "prompt": generation[1],
-                "generation": generation[2],
-                "submitted": generation[3],
-                "reason": generation[4],
-                "challenge": generation[5],
-            })
-        filter = {}
-        if request.query_params.get("sumbitted", None) == "true":
-            filter = {"submitted": True}
-        elif request.query_params.get("sumbitted", None) == "false":
-            filter = {"submitted": False}
-
-        if request.query_params.get("reported", None) == "true":
-            filter = {"reported": True}
-        elif request.query_params.get("reported", None) == "false":
-            filter = {"reported": False}
+        final_generations = get_generations(session, request, challenge_id=challenge_id)
             
         model_name_alias = aliased(Model, name="model_name")
-        query = select(Challenge.id, Challenge.name, Challenge.description, Challenge.preprompt, Challenge.enabled).add_columns(model_name_alias.name).join(model_name_alias).where(Challenge.id == challenge_id).filter(**filter)
+        query = select(Challenge.id, Challenge.name, Challenge.description, Challenge.preprompt, Challenge.enabled).add_columns(model_name_alias.name).join(model_name_alias).where(Challenge.id == challenge_id)
         challenge = session.execute(query).first()
         num_generations = session.query(func.count()).filter(Generation.challenge_id == challenge_id).scalar()
         num_submissions = session.query(func.count()).filter(Generation.challenge_id == challenge_id).filter(Generation.submitted == True).scalar()
@@ -148,7 +141,7 @@ async def challenge_generations(challenge_id: int, request: Request):
             "num_generations": num_generations,
             "num_submissions": num_submissions,
         }        
-    return templates.TemplateResponse("generations.html", {"request": request, "challenge": final_challenge, "generations": final_generations})
+    return templates.TemplateResponse("generations.html", {"request": request, "challenges": [final_challenge], "generations": final_generations})
 
 @router.get("/toggle_challenge/{challenge_id}")
 async def toggle_challenge(challenge_id: int):

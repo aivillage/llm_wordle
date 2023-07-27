@@ -1,13 +1,13 @@
 from logging import getLogger
 from typing import Optional
-from fastapi.templating import Jinja2Templates
+import random
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-import random, os, json
+from fastapi_limiter.depends import RateLimiter
 
 from .schema import Challenge, Generation
-from .settings import SessionLocal
+from .settings import SessionLocal, public_settings
 router = APIRouter()
 log = getLogger(__name__)
 
@@ -29,7 +29,11 @@ class ChallengeResponse(BaseModel):
     error: Optional[str] = None
 
 
-@router.post("/generate/{challenge_id}")
+async def global_identifier(request):
+    return "global"
+
+
+@router.post("/generate/{challenge_id}", dependencies=[Depends(RateLimiter(times=public_settings.GEN_REQUESTS_PER_MINUTE, minutes=1, identifier=global_identifier))])
 async def generate(challenge_id: int, request: GenerateRequest) -> GenerateResponse:
     log.info(f"Generating with prompt.")
     with SessionLocal() as session:
@@ -44,7 +48,7 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
         session.commit()
         return GenerateResponse(generation=generation.generation, id=generation.id)
     
-@router.get("/challenge")
+@router.get("/challenge", dependencies=[Depends(RateLimiter(times=public_settings.CHALLENGE_REQUESTS_PER_MINUTE, minutes=1))])
 async def get_challenge():
     with SessionLocal() as session:
         enabled_challenge_count = session.query(Challenge).filter(Challenge.enabled).count()

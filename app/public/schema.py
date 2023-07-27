@@ -1,5 +1,6 @@
+from dataclasses import dataclass
 from typing import Optional
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import JSON, ForeignKey, String, Text
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -22,11 +23,11 @@ class Generation(Base):
     __tablename__ = "generation"
     id: Mapped[int] = mapped_column(primary_key=True)
     challenge_id: Mapped[int] = mapped_column(ForeignKey("challenge.id"))
-    prompt: Mapped[str] = mapped_column(String(4000))
-    generation: Mapped[str] = mapped_column(String(4000))
+    prompt: Mapped[str] = mapped_column(Text)
+    generation: Mapped[str] = mapped_column(Text)
     challenge: Mapped["Challenge"] = relationship()
     submitted: Mapped[bool] = mapped_column(default=False)
-    reason: Mapped[Optional[str]] = mapped_column(String(4000))
+    reason: Mapped[Optional[str]] = mapped_column(Text)
     reported: Mapped[bool] = mapped_column(default=False)
 
     def __repr__(self) -> str:
@@ -38,8 +39,8 @@ class Challenge(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     model_id: Mapped[int] = mapped_column(ForeignKey("model.id"))
     name: Mapped[str] = mapped_column(String(200))
-    description: Mapped[str] = mapped_column(String(4000))
-    preprompt: Mapped[str] = mapped_column(String(4000))
+    description: Mapped[str] = mapped_column(Text)
+    preprompt: Mapped[str] = mapped_column(Text)
     enabled: Mapped[bool] = mapped_column(default=True)
     model: Mapped["Model"] = relationship()
 
@@ -65,8 +66,8 @@ class Model(Base):
     name: Mapped[str] = mapped_column(String(200))
     url: Mapped[str] = mapped_column(String(200))
     key: Mapped[str] = mapped_column(String(200))
-    parameters: Mapped[str] = mapped_column(String(200))
-    prompt_format: Mapped[str] = mapped_column(String(200))
+    parameters: Mapped[str] = mapped_column(Text)
+    prompt_format: Mapped[dict] = mapped_column(JSON)
 
     def __repr__(self) -> str:
         return f"Model(id={self.id!r}, name={self.name!r}), url={self.url!r}"
@@ -89,17 +90,34 @@ def empty_str_cast(value, default=None):
     return value
 
 
-def connect_db(config: dict):
+@dataclass
+class DatabaseSettings():
+    DATABASE_HOST: str 
+    DATABASE_PORT: int
+    DATABASE_NAME: str
+    DATABASE_USER: str
+    DATABASE_PASSWORD: str
+    DATABASE_PROTOCOL: str
+
+    def __init__(self, settings: dict):
+        self.DATABASE_HOST = settings["DATABASE_HOST"]
+        self.DATABASE_PORT = settings["DATABASE_PORT"]
+        self.DATABASE_NAME = settings["DATABASE_NAME"]
+        self.DATABASE_USER = settings["DATABASE_USER"]
+        self.DATABASE_PASSWORD = settings["DATABASE_PASSWORD"]
+        self.DATABASE_PROTOCOL = settings["DATABASE_PROTOCOL"]
+
+
+def connect_db(config: DatabaseSettings):
     DATABASE_URL = URL.create(
-        empty_str_cast(config["DATABASE_PROTOCOL"]) or "mysql",
-        username=empty_str_cast(config["DATABASE_USER"]) or "llm_wordle",
-        password=empty_str_cast(config["DATABASE_PASSWORD"]) or "llm_wordle",
-        host=empty_str_cast(config["DATABASE_HOST"]),
-        port=empty_str_cast(config["DATABASE_PORT"]),
-        database=empty_str_cast(config["DATABASE_NAME"]) or "llm_wordle",
+        empty_str_cast(config.DATABASE_PROTOCOL),
+        username=empty_str_cast(config.DATABASE_USER),
+        password=empty_str_cast(config.DATABASE_PASSWORD),
+        host=empty_str_cast(config.DATABASE_HOST),
+        port=empty_str_cast(config.DATABASE_PORT),
+        database=empty_str_cast(config.DATABASE_NAME),
     )
-    print(DATABASE_URL)
-    engine = create_engine(DATABASE_URL)
+    engine = create_engine(DATABASE_URL, pool_recycle=3600)
     
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base.metadata.create_all(engine)

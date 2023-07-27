@@ -17,6 +17,7 @@ RUN apt-get update \
 
 ENV PATH="/opt/venv/bin:$PATH"
 
+
 COPY . /opt/llm_wordle
 
 RUN pip install --no-cache-dir -r requirements.txt
@@ -27,25 +28,20 @@ WORKDIR /opt/llm_wordle
 
 # hadolint ignore=DL3008
 
-
-COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/static /opt/llm_wordle/app/static
-COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/public /opt/llm_wordle/app/public
-COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/__init__.py /opt/llm_wordle/app/__init__.py
-
+RUN mkdir -p /opt/llm_wordle/  /opt/llm_wordle/app
 
 RUN useradd \
     --no-log-init \
     --shell /bin/bash \
     -u 1001 \
     llm_wordle \
-    && mkdir -p /var/log/llm_wordle \
-    && chown -R 1001:1001 /var/log/llm_wordle /opt/llm_wordle/app
+    && mkdir -p /var/log/llm_wordle /var/uploads \
+    && chown -R 1001:1001 /var/log/llm_wordle /var/uploads /opt/llm_wordle/app
     
 
 COPY --chown=1001:1001 --from=build /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-ENV LOG_DIR="/var/log/llm_wordle"
 
 USER 1001
 EXPOSE 8000
-ENTRYPOINT ["uvicorn","--factory","app.admin.main:app", "--host", "0.0.0.0"]
+ENTRYPOINT ["uvicorn","--factory","app.admin.main:app", "--reload", "--host", "0.0.0.0"]

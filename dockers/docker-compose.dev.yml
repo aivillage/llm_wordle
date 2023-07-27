@@ -3,25 +3,27 @@ version: '2'
 services:
   llm_wordle:
     build:
-      context: .
-      dockerfile: Dockerfile.dev
+      context: ../
+      dockerfile: dockers/Dockerfile.dev
     user: root
     restart: always
     ports:
       - "8000:8000"
     volumes:
-      - .data/llm_wordle/logs:/var/log/llm_wordle
-      - .data/llm_wordle/uploads:/var/uploads
-      - .:/opt/llm_wordle:ro
+      - ../.data/llm_wordle/logs:/var/log/llm_wordle
+      - ../.data/llm_wordle/uploads:/var/uploads
+      - ../:/opt/llm_wordle:ro
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
     networks:
         default:
         internal:
     environment:
-      - UPLOAD_FOLDER=/var/uploads
-      - DATABASE_URL=mysql+pymysql://llm_wordle:llm_wordle@db/llm_wordle
-      - REDIS_URL=redis://cache:6379
+      - PUBLIC_SETTINGS_FILE=public_settings.dev.json
+      - ADMIN_SETTINGS_FILE=conf_dev/admin_settings.json
       - WORKERS=1
       - LOG_FOLDER=/var/log/llm_wordle
 
@@ -34,19 +36,31 @@ services:
       - MYSQL_PASSWORD=llm_wordle
       - MYSQL_DATABASE=llm_wordle
     volumes:
-      - .data/mysql:/var/lib/mysql
+      - ../.data/mysql:/var/lib/mysql
     networks:
         internal:
     # This command is required to set important mariadb defaults
     command: [mysqld, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --wait_timeout=28800, --log-warnings=0]
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
 
   cache:
     image: redis:4
     restart: always
     volumes:
-    - .data/redis:/data
+    - ../.data/redis:/data
     networks:
         internal:
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
 
 networks:
     default:

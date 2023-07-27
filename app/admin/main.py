@@ -4,7 +4,7 @@ from .admin import router as admin_router
 import os, json
 
 from .auth import auth_router, get_current_active_user, create_user
-from .settings import settings, SessionLocal
+from .settings import admin_settings, SessionLocal
 from ..public.main import app as user_app
 
 
@@ -32,7 +32,7 @@ def load_models(path):
                 url=model["url"],
                 parameters=json.dumps(model["parameters"]),
                 prompt_format=model["prompt_format"],
-                key=settings["security"]["HUGGINGFACE_API_KEY"],
+                key=admin_settings["security"]["HUGGINGFACE_API_KEY"],
             )
             session.add(model)
         session.commit()

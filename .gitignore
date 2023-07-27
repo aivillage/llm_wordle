@@ -1,5 +1,7 @@
 conf
-settings.json
+conf_dev
+conf_prod
+public_settings.json
 app/static
 .data
 

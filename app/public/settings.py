@@ -1,3 +1,7 @@
 from .schema import connect_db
+import json
 
-SessionLocal = connect_db()
+with open("settings.json") as f:
+    settings = json.load(f)
+
+SessionLocal = connect_db(settings["database"])

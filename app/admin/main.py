@@ -1,5 +1,5 @@
 from fastapi import Depends
-from ..public.schema import Challenge, Model
+from ..public.schema import Challenge, Model, User
 from .admin import router as admin_router
 import os, json
 
@@ -13,6 +13,9 @@ def load_users(path):
         users = json.load(f)
     with SessionLocal() as session:
         for user in users:
+            if session.query(User).filter(User.username == user["username"]).first():
+                print(f"User {user['username']} already exists, skipping.")
+                continue
             create_user(session, user["username"], user["password"])
 
 
@@ -29,7 +32,7 @@ def load_models(path):
                 url=model["url"],
                 parameters=json.dumps(model["parameters"]),
                 prompt_format=model["prompt_format"],
-                key=settings.HUGGINGFACE_API_KEY,
+                key=settings["security"]["HUGGINGFACE_API_KEY"],
             )
             session.add(model)
         session.commit()

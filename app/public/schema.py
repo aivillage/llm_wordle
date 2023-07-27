@@ -1,9 +1,10 @@
 from typing import Optional
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
+from sqlalchemy.engine.url import URL
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -21,11 +22,11 @@ class Generation(Base):
     __tablename__ = "generation"
     id: Mapped[int] = mapped_column(primary_key=True)
     challenge_id: Mapped[int] = mapped_column(ForeignKey("challenge.id"))
-    prompt: Mapped[str]
-    generation: Mapped[str]
+    prompt: Mapped[str] = mapped_column(String(4000))
+    generation: Mapped[str] = mapped_column(String(4000))
     challenge: Mapped["Challenge"] = relationship()
     submitted: Mapped[bool] = mapped_column(default=False)
-    reason: Mapped[Optional[str]]
+    reason: Mapped[Optional[str]] = mapped_column(String(4000))
     reported: Mapped[bool] = mapped_column(default=False)
 
     def __repr__(self) -> str:
@@ -36,9 +37,9 @@ class Challenge(Base):
     __tablename__ = "challenge"
     id: Mapped[int] = mapped_column(primary_key=True)
     model_id: Mapped[int] = mapped_column(ForeignKey("model.id"))
-    name: Mapped[str]
-    description: Mapped[str]
-    preprompt: Mapped[str]
+    name: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(String(4000))
+    preprompt: Mapped[str] = mapped_column(String(4000))
     enabled: Mapped[bool] = mapped_column(default=True)
     model: Mapped["Model"] = relationship()
 
@@ -61,11 +62,11 @@ class Challenge(Base):
 class Model(Base):
     __tablename__ = "model"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
-    url: Mapped[str]
-    key: Mapped[str]
-    parameters: Mapped[str]
-    prompt_format: Mapped[str]
+    name: Mapped[str] = mapped_column(String(200))
+    url: Mapped[str] = mapped_column(String(200))
+    key: Mapped[str] = mapped_column(String(200))
+    parameters: Mapped[str] = mapped_column(String(200))
+    prompt_format: Mapped[str] = mapped_column(String(200))
 
     def __repr__(self) -> str:
         return f"Model(id={self.id!r}, name={self.name!r}), url={self.url!r}"
@@ -77,16 +78,29 @@ class Model(Base):
 class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(unique=True)
-    hashed_password: Mapped[str]
+    username: Mapped[str] = mapped_column(String(200), unique=True)
+    hashed_password: Mapped[str] = mapped_column(String(200))
     disabled: Mapped[bool]
 
 
-def connect_db(config: Optional[dict] = None):
-    if config is None:
-        engine = create_engine("sqlite://")
-    else:
-        engine = create_engine(config["database_url"])
+def empty_str_cast(value, default=None):
+    if value == "":
+        return default
+    return value
+
+
+def connect_db(config: dict):
+    DATABASE_URL = URL.create(
+        empty_str_cast(config["DATABASE_PROTOCOL"]) or "mysql",
+        username=empty_str_cast(config["DATABASE_USER"]) or "llm_wordle",
+        password=empty_str_cast(config["DATABASE_PASSWORD"]) or "llm_wordle",
+        host=empty_str_cast(config["DATABASE_HOST"]),
+        port=empty_str_cast(config["DATABASE_PORT"]),
+        database=empty_str_cast(config["DATABASE_NAME"]) or "llm_wordle",
+    )
+    print(DATABASE_URL)
+    engine = create_engine(DATABASE_URL)
+    
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base.metadata.create_all(engine)
     return SessionLocal

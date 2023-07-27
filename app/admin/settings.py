@@ -2,22 +2,15 @@ import json
 from dataclasses import dataclass
 from ..public.schema import connect_db
 
-@dataclass
-class Settings:
-    SECRET_KEY: str = "secret-key"
-    HUGGINGFACE_API_KEY: str = "huggingface-api-key"
-    SETTINGS_FILE: str = "conf/settings.json"
 
-    def __init__(self):
-        try:
-            with open("conf/admin_settings.json") as f:
-                settings = json.load(f)
-        except:
-            settings = {}
-        self.SECRET_KEY = settings.get("SECRET_KEY", self.SECRET_KEY)
-        self.HUGGINGFACE_API_KEY = settings.get("HUGGINGFACE_API_KEY", self.HUGGINGFACE_API_KEY)
-        
+with open("conf/admin_settings.json") as f:
+    settings = json.load(f)
+with open("settings.json") as f:
+    public_settings = json.load(f)
 
-settings = Settings()
+database_settings = public_settings.get("database", {})
+database_settings["DATABASE_USER"] = settings["database"]["DATABASE_USER"]
+database_settings["DATABASE_PASSWORD"] = settings["database"]["DATABASE_PASSWORD"]
 
-SessionLocal = connect_db()
+
+SessionLocal = connect_db(database_settings)

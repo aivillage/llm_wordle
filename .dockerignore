@@ -3,6 +3,7 @@ app/static
 conf_templates
 .node_modules
 Dockerfile
+docker-compose.yml
 .dockerignore
 .gitignore
 **/node_modules

@@ -31,7 +31,7 @@ class ChallengeResponse(BaseModel):
 
 @router.post("/generate/{challenge_id}")
 async def generate(challenge_id: int, request: GenerateRequest) -> GenerateResponse:
-    print(f"Generating with prompt: {request.prompt}")
+    log.info(f"Generating with prompt.")
     with SessionLocal() as session:
         # Check this isn't a duplicate
         generation = session.query(Generation).filter(Generation.challenge_id == challenge_id).filter(Generation.prompt == request.prompt).first()
@@ -42,7 +42,6 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
         generation = challenge.generate(request.prompt)
         session.add(generation)
         session.commit()
-        print(generation.generation)
         return GenerateResponse(generation=generation.generation, id=generation.id)
     
 @router.get("/challenge")

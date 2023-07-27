@@ -38,14 +38,13 @@ RUN useradd \
     --shell /bin/bash \
     -u 1001 \
     llm_wordle \
-    && mkdir -p /var/log/llm_wordle \
-    && chown -R 1001:1001 /var/log/llm_wordle /opt/llm_wordle/app
+    && mkdir -p /var/log/llm_wordle /var/uploads \
+    && chown -R 1001:1001 /var/log/llm_wordle /var/uploads /opt/llm_wordle/app
     
 
 COPY --chown=1001:1001 --from=build /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-ENV LOG_DIR="/var/log/llm_wordle"
 
 USER 1001
 EXPOSE 8000
-ENTRYPOINT ["uvicorn","--factory","app.admin.main:app", "--host", "0.0.0.0"]
+ENTRYPOINT ["uvicorn","--factory","app.admin.main:app", "--reload", "--host", "0.0.0.0"]

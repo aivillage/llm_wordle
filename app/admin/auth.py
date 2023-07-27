@@ -14,6 +14,9 @@ from ..public.schema import User
 from fastapi.templating import Jinja2Templates
 from .settings import admin_settings, SessionLocal
 
+from logging import getLogger
+log = getLogger("auth")
+
 templates = Jinja2Templates(directory="templates")
 auth_router = APIRouter()
 

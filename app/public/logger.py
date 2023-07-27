@@ -21,14 +21,14 @@ def initialize_loggers(module_name):
     folder = os.getenv("LOG_FOLDER", "./logs")
     if not os.path.exists(folder):
         os.makedirs(folder)
-    llm_logfile = Path(folder, "llm_verification.log")
+    llm_logfile = Path(folder, "llm_wordle.log")
     # Ensure that the log file exists.
     llm_logfile.touch(exist_ok=True)
     llm_verification_log = RotatingFileHandler(llm_logfile,
                                                maxBytes=10485760,
                                                backupCount=5)
     # Write all LLM Verification Plugin logs to the log file.
-    log.addHandler(llm_verification_log)
+    #log.addHandler(llm_verification_log)
     # Create a console logger for the LLM Verification Plugin.
     console_logger = StreamHandler(stream=sys.stdout)
     # todo: Make LLM Verification Plugin log severity level configurable via `config.json`.

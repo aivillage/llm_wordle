@@ -34,6 +34,7 @@ class PublicSettings():
         self.redis = RedisSettings(settings.get("redis", {}))
         self.GEN_REQUESTS_PER_MINUTE = settings["GEN_REQUESTS_PER_MINUTE"]
         self.CHALLENGE_REQUESTS_PER_MINUTE = settings["CHALLENGE_REQUESTS_PER_MINUTE"]
+
         
 public_settings = PublicSettings()
 

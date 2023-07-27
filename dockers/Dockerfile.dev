@@ -44,4 +44,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 USER 1001
 EXPOSE 8000
-ENTRYPOINT ["uvicorn","--factory","app.admin.main:app", "--reload", "--host", "0.0.0.0"]
+ENTRYPOINT ["uvicorn","--factory","app.admin.main:app", "--reload", "--host", "0.0.0.0", "--log-config", "logging.yml"]

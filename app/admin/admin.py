@@ -6,7 +6,9 @@ from ..public.schema import Generation, Challenge, Model
 from .settings import SessionLocal
 from sqlalchemy import select, func
 from sqlalchemy.orm import aliased
+import logging
 
+log = logging.getLogger("admin")
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -77,13 +79,13 @@ async def new_challenge(request: Request):
 @router.get("/generations/")
 async def view_generations(request: Request):
     with SessionLocal() as session:
-        all_generations = session.query(Generation).all()
         filter = {}
         if request.query_params.get("sumbitted", None) == "true":
             filter = {"submitted": True}
         elif request.query_params.get("sumbitted", None) == "false":
             filter = {"submitted": False}
-        elif request.query_params.get("reported", None) == "true":
+    
+        if request.query_params.get("reported", None) == "true":
             filter = {"reported": True}
         elif request.query_params.get("reported", None) == "false":
             filter = {"reported": False}
@@ -106,7 +108,6 @@ async def view_generations(request: Request):
 @router.get("/generations/{challenge_id}")
 async def challenge_generations(challenge_id: int, request: Request):
     with SessionLocal() as session:
-        all_generations = session.query(Generation).all()
         # gets all generations for all challenges
         query = select(Generation.id, Generation.prompt, Generation.generation, Generation.reason, Generation.submitted, Challenge.name).add_columns(Challenge.name).join(Challenge).where(Generation.challenge_id == challenge_id)
         generations = session.execute(query).all()
@@ -125,7 +126,8 @@ async def challenge_generations(challenge_id: int, request: Request):
             filter = {"submitted": True}
         elif request.query_params.get("sumbitted", None) == "false":
             filter = {"submitted": False}
-        elif request.query_params.get("reported", None) == "true":
+
+        if request.query_params.get("reported", None) == "true":
             filter = {"reported": True}
         elif request.query_params.get("reported", None) == "false":
             filter = {"reported": False}

@@ -9,10 +9,7 @@ from sqlalchemy.engine.url import URL
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import json
-from logging import getLogger
-from requests import post
-log = getLogger(__name__)
+
 
 
 class Base(DeclarativeBase):
@@ -46,18 +43,6 @@ class Challenge(Base):
 
     def __repr__(self) -> str:
         return f"Challenge(id={self.id!r}, name={self.name!r})"
-    
-    def generate(self, prompt: str) -> Generation:
-        full_prompt = self.model.full_prompt(self.preprompt, prompt)
-        parameters = json.loads(self.model.parameters)
-        log.info(f"Generating with prompt: {full_prompt}")
-        raw_response = post(url=self.model.url,
-                        headers={'Authorization': f'Bearer {self.model.key}'},
-                        json={'inputs': full_prompt, "parameters" : parameters, "stream:": False})
-        json_response = raw_response.json()
-        print(json_response)
-        generated_text = json_response[0]['generated_text']
-        return Generation(prompt=prompt, generation=generated_text, challenge=self)
 
 
 class Model(Base):

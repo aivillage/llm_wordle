@@ -31,7 +31,8 @@ WORKDIR /opt/llm_wordle
 COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/ /opt/llm_wordle/app/
 COPY --chown=1001:1001 --from=build /opt/llm_wordle/conf/ /opt/llm_wordle/conf/
 COPY --chown=1001:1001 --from=build /opt/llm_wordle/templates /opt/llm_wordle/templates
-COPY --chown=1001:1001 --from=build /opt/llm_wordle/public_settings.json /opt/llm_wordle/public_settings.json
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/public_settings.dev.json /opt/llm_wordle/public_settings.dev.json
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/admin_settings.dev.json /opt/llm_wordle/admin_settings.dev.json
 
 
 RUN useradd \

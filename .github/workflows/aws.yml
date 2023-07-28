@@ -28,16 +28,16 @@ name: Deploy to Amazon ECS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "aws_move" ]
 
 env:
-  AWS_REGION: MY_AWS_REGION                   # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: MY_ECR_REPOSITORY           # set this to your Amazon ECR repository name
-  ECS_SERVICE: MY_ECS_SERVICE                 # set this to your Amazon ECS service name
-  ECS_CLUSTER: MY_ECS_CLUSTER                 # set this to your Amazon ECS cluster name
-  ECS_TASK_DEFINITION: MY_ECS_TASK_DEFINITION # set this to the path to your Amazon ECS task definition
+  AWS_REGION: us-east-1                   # set this to your preferred AWS region, e.g. us-west-1
+  ECR_REPOSITORY: llm_wordle           # set this to your Amazon ECR repository name
+  ECS_SERVICE: llm_wordle                 # set this to your Amazon ECS service name
+  ECS_CLUSTER: llm_wordle_cluster                 # set this to your Amazon ECS cluster name
+  ECS_TASK_DEFINITION: llm_wordle # set this to the path to your Amazon ECS task definition
                                                # file, e.g. .aws/task-definition.json
-  CONTAINER_NAME: MY_CONTAINER_NAME           # set this to the name of the container in the
+  CONTAINER_NAME: llm_wordle           # set this to the name of the container in the
                                                # containerDefinitions section of your task definition
 
 permissions:
@@ -54,11 +54,11 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v2
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        role-to-assume: ${{ secrets.IAM_ARN }}
         aws-region: ${{ env.AWS_REGION }}
+
 
     - name: Login to Amazon ECR
       id: login-ecr
@@ -73,7 +73,7 @@ jobs:
         # Build a docker container and
         # push it to ECR so that it can
         # be deployed to ECS.
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f dockers/Dockerfile.admin .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
@@ -84,6 +84,21 @@ jobs:
         task-definition: ${{ env.ECS_TASK_DEFINITION }}
         container-name: ${{ env.CONTAINER_NAME }}
         image: ${{ steps.build-image.outputs.image }}
+        environment-variables: |
+            - ADMIN_PASSWORD=admin
+            - REDIS_URL=redis://clustercfg.llm-wordle-redis.xlf0i4.memorydb.us-east-1.amazonaws.com:6379/0
+            - REDIS_USERNAME=
+            - REDIS_PASSWORD=
+            - DATABASE_PROTOCOL=mysql+pymysql
+            - DATABASE_USER=admin
+            - DATABASE_PASSWORD=${{ secrets.AWS_DATABASE_PASSWORD }}
+            - DATABASE_HOST=llm-wordle-database-1.ctiemoaym0va.us-east-1.rds.amazonaws.com
+            - DATABASE_PORT=3306
+            - DATABASE_NAME=llm-wordle-database-1
+            - PUBLIC_SETTINGS_FILE=public_settings.dev.json
+            - ADMIN_SETTINGS_FILE=admin_settings.json
+            - WORKERS=1
+            - LOG_FOLDER=/var/log/llm_wordle
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1

@@ -10,3 +10,4 @@ dockers
 **/__pycache__
 .venv*
 venv*
+.env

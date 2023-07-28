@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
     pass
 
 
-def app():
+def make_app():
     app = FastAPI(
         lifespan=lifespan,
         docs_url=None, # Disable docs (Swagger UI)
@@ -33,3 +33,5 @@ def app():
     app.include_router(index_router)
     log.info("Initialized LLM Wordle")
     return app
+
+app = make_app()

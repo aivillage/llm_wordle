@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 import os
 from typing import Optional
-from sqlalchemy import JSON, ForeignKey, String, Text
+from sqlalchemy import MetaData
+from sqlalchemy import JSON, ForeignKey, String, Text, text
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -10,11 +11,13 @@ from sqlalchemy.engine.url import URL
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from logging import getLogger
+log = getLogger("public")
 
-
+metadata_obj = MetaData(schema="llm_wordle")
 
 class Base(DeclarativeBase):
-    pass
+    metadata = metadata_obj
 
 
 class Generation(Base):
@@ -94,7 +97,7 @@ class DatabaseSettings():
         self.DATABASE_PROTOCOL = os.getenv("DATABASE_PROTOCOL")
 
 
-def connect_db(config: DatabaseSettings):
+def connect_db(config: DatabaseSettings, admin: bool = False):
     DATABASE_URL = URL.create(
         empty_str_cast(config.DATABASE_PROTOCOL),
         username=empty_str_cast(config.DATABASE_USER),
@@ -104,7 +107,10 @@ def connect_db(config: DatabaseSettings):
         database=empty_str_cast(config.DATABASE_NAME),
     )
     engine = create_engine(DATABASE_URL, pool_recycle=3600)
-    
+    conn = engine.connect()
+    conn.execute(text("CREATE DATABASE IF NOT EXISTS llm_wordle;"))
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    Base.metadata.create_all(engine)
+    if admin:
+        Base.metadata.create_all(engine)
+    log.info("Database connected")
     return SessionLocal

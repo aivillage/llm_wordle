@@ -6,7 +6,7 @@ import os, json
 
 from .auth import auth_router, get_current_active_user, create_user
 from .settings import admin_settings, SessionLocal
-from ..public.main import app as user_app
+from ..public.main import make_app
 from logging import getLogger
 
 log = getLogger("admin")
@@ -59,8 +59,8 @@ def load_challenges(path):
         session.commit()
 
 
-def app():
-    app = user_app()
+def make_admin_app():
+    app = make_app()
     if os.path.exists("conf/models.json"):
         log.info(f"Loading models from conf/models.json")
         load_models("conf/models.json")
@@ -93,3 +93,5 @@ def app():
         dependencies=[Depends(get_current_active_user)],
     )
     return app
+
+admin_app = make_admin_app()

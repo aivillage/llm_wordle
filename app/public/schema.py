@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import os
 from typing import Optional
 from sqlalchemy import JSON, ForeignKey, String, Text
 from sqlalchemy.orm import DeclarativeBase
@@ -84,13 +85,13 @@ class DatabaseSettings():
     DATABASE_PASSWORD: str
     DATABASE_PROTOCOL: str
 
-    def __init__(self, settings: dict):
-        self.DATABASE_HOST = settings["DATABASE_HOST"]
-        self.DATABASE_PORT = settings["DATABASE_PORT"]
-        self.DATABASE_NAME = settings["DATABASE_NAME"]
-        self.DATABASE_USER = settings["DATABASE_USER"]
-        self.DATABASE_PASSWORD = settings["DATABASE_PASSWORD"]
-        self.DATABASE_PROTOCOL = settings["DATABASE_PROTOCOL"]
+    def __init__(self):
+        self.DATABASE_HOST = os.getenv("DATABASE_HOST")
+        self.DATABASE_PORT = os.getenv("DATABASE_PORT")
+        self.DATABASE_NAME = os.getenv("DATABASE_NAME")
+        self.DATABASE_USER = os.getenv("DATABASE_USER")
+        self.DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+        self.DATABASE_PROTOCOL = os.getenv("DATABASE_PROTOCOL")
 
 
 def connect_db(config: DatabaseSettings):

@@ -2,8 +2,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Request, status
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
-from ..public.schema import Generation, Challenge, Model
+from ..public.schema import Generation, Challenge, Model, User
 from .settings import SessionLocal
+from .auth import create_user
 from sqlalchemy import select, func
 from sqlalchemy.orm import aliased
 import logging
@@ -148,4 +149,42 @@ async def toggle_challenge(challenge_id: int):
         challenge = session.query(Challenge).filter(Challenge.id == challenge_id).first()
         challenge.enabled = not challenge.enabled
         session.commit()
+    return RedirectResponse(f"/admin/", status.HTTP_302_FOUND)
+
+@router.get("/add_user/")
+async def add_user(request: Request):
+    return templates.TemplateResponse("add_user.html", {"request": request})
+
+class UserForm:
+    request: Request
+    errors: List = []
+    username: Optional[str] = None
+    password: Optional[str] = None
+    confirm_password: Optional[str] = None
+
+    def __init__(self, request: Request):
+        self.request = request
+
+    async def load(self):
+        form = await self.request.form()
+        self.username = form.get("username")
+        self.password = form.get("password")
+        self.confirm_password = form.get("confirm_password")
+    
+    def validate(self):
+        if self.password != self.confirm_password:
+            self.errors.append("Passwords do not match.")
+
+@router.post("/add_user/")
+async def add_user(request: Request):
+    form = UserForm(request)
+    await form.load()
+    form.validate()
+    if len(form.errors) > 0:
+        return templates.TemplateResponse("add_user.html", {"request": request, "errors": form.errors})
+    with SessionLocal() as session:
+        user = session.query(User).filter(User.username == form.username).first()
+        if user is not None:
+            return templates.TemplateResponse("add_user.html", {"request": request, "errors": ["User already exists."]})
+        user = create_user(session, form.username, form.password)
     return RedirectResponse(f"/admin/", status.HTTP_302_FOUND)

@@ -10,16 +10,6 @@ from logging import getLogger
 
 log = getLogger("admin")
 
-def load_users(path):
-    with open(path) as f:
-        users = json.load(f)
-    with SessionLocal() as session:
-        for user in users:
-            if session.query(User).filter(User.username == user["username"]).first():
-                log.info(f"User {user['username']} already exists, skipping.")
-                continue
-            create_user(session, user["username"], user["password"])
-
 
 def load_models(path):
     with open(path) as f:
@@ -80,11 +70,12 @@ def app():
         load_challenges("conf/challenges.json")
     else:
         log.info(f"Challenges file not found at conf/challenges.json")
-    if os.path.exists("conf/users.json"):
-        log.info(f"Loading users from conf/users.json")
-        load_users("conf/users.json")
-    else:
-        log.info(f"Users file not found at conf/users.json")
+
+    with SessionLocal() as session:
+        try:
+            create_user(session, "admin", os.getenv("ADMIN_PASSWORD"))
+        except ValueError:
+            pass
 
     app.include_router(auth_router)
     app.include_router(

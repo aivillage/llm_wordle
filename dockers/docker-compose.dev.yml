@@ -22,8 +22,18 @@ services:
         default:
         internal:
     environment:
+      - ADMIN_PASSWORD=admin
+      - REDIS_URL=redis://cache:6379/0
+      - REDIS_USERNAME=
+      - REDIS_PASSWORD=
+      - DATABASE_PROTOCOL=mysql+pymysql
+      - DATABASSE_USER=llm_wordle
+      - DATABASE_PASSWORD=llm_wordle
+      - DATABASE_HOST=db
+      - DATABAE_PORT=
+      - DATABASE_NAME=llm_wordle
       - PUBLIC_SETTINGS_FILE=public_settings.dev.json
-      - ADMIN_SETTINGS_FILE=conf_dev/admin_settings.json
+      - ADMIN_SETTINGS_FILE=admin_settings.json
       - WORKERS=1
       - LOG_FOLDER=/var/log/llm_wordle
 

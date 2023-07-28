@@ -58,7 +58,8 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: ${{ secrets.IAM_ARN }}
+        role-to-assume: ${{ secrets.IAM_ARN }} 
+        role-session-name: llm_wordle_deployment_gh
         aws-region: ${{ env.AWS_REGION }}
 
 

@@ -1,6 +1,7 @@
 from fastapi import Depends
 from ..public.schema import Challenge, Model, User
 from .admin import router as admin_router
+from .user_mgmt import usr_router
 import os, json
 
 from .auth import auth_router, get_current_active_user, create_user
@@ -84,5 +85,11 @@ def app():
         tags=["admin"],
         dependencies=[Depends(get_current_active_user)],
         responses={418: {"description": "I'm a teapot"}},
+    )
+    app.include_router(
+        usr_router,
+        prefix="/admin",
+        tags=["admin"],
+        dependencies=[Depends(get_current_active_user)],
     )
     return app

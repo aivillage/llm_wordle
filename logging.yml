@@ -1,0 +1,102 @@
+version: 1
+disable_existing_loggers: False
+formatters:
+  default:
+    "()": uvicorn.logging.DefaultFormatter
+    format: '[%(asctime)s] %(levelname)s %(message)s'
+  access:
+    "()": uvicorn.logging.AccessFormatter
+    format: "[%(asctime)s %(process)d] %(name)s - %(levelname)s - %(message)s | %(filename)s:%(lineno)d"
+  app_format:
+    format: "[%(asctime)s %(process)d] %(name)s - %(levelname)s - %(message)s | %(filename)s:%(lineno)d"
+handlers:
+  file_handler:
+    class: logging.FileHandler
+    level: INFO
+    formatter: app_format
+    filename: /var/log/llm_wordle/info.log
+    encoding: utf8
+    mode: a
+  gen_file_handler:
+    class: logging.FileHandler
+    level: INFO
+    formatter: app_format
+    filename: /var/log/llm_wordle/generations.log
+    encoding: utf8
+    mode: a
+  public_file_handler:
+    class: logging.FileHandler
+    level: INFO
+    formatter: app_format
+    filename: /var/log/llm_wordle/public.log
+    encoding: utf8
+    mode: a
+  admin_file_handler:
+    class: logging.FileHandler
+    level: INFO
+    formatter: app_format
+    filename: /var/log/llm_wordle/admin.log
+    encoding: utf8
+    mode: a
+  auth_file_handler:
+    class: logging.FileHandler
+    level: INFO
+    formatter: app_format
+    filename: /var/log/llm_wordle/auth.log
+    encoding: utf8
+    mode: a
+
+  app_default:
+    formatter: app_format
+    class: logging.StreamHandler
+    stream: ext://sys.stderr
+
+  default:
+    formatter: default
+    class: logging.StreamHandler
+    stream: ext://sys.stderr
+  access:
+    formatter: access
+    class: logging.StreamHandler
+    stream: ext://sys.stdout
+loggers:
+  uvicorn.error:
+    level: INFO
+    handlers:
+      - default
+      - file_handler
+    propagate: no
+  uvicorn.access:
+    level: INFO
+    handlers:
+      - access
+      - file_handler
+    propagate: no
+
+  generator:
+    level: INFO
+    handlers:
+      - app_default
+      - gen_file_handler
+    propagate: no
+
+  public:
+    level: INFO
+    handlers:
+      - app_default
+      - public_file_handler
+    propagate: no
+
+  admin:
+    level: DEBUG
+    handlers:
+      - app_default
+      - admin_file_handler
+    propagate: no
+
+  auth:
+    level: DEBUG
+    handlers:
+      - app_default
+      - admin_file_handler
+    propagate: no

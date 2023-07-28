@@ -62,6 +62,9 @@ Alpine.data('llm_challenge', () => ({
                 prompt: this.input,
             })
         });
+        if (response.status == 429) {
+            this.generation_text = "System is overloaded. Please wait a few seconds before generating again.";
+        }
         const data = await response.json();
         this.generation_text = "";
         this.output = data.generation;

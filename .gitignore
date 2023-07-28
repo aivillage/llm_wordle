@@ -1,8 +1,9 @@
-.settings.json
-users.json
-challenges.json
-models.json
+conf
+conf_dev
+conf_prod
+public_settings.json
 app/static
+.data
 
 # Logs
 logs

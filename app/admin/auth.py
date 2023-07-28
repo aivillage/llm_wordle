@@ -10,16 +10,15 @@ from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from .schema import User, SessionLocal
+from ..public.schema import User
 from fastapi.templating import Jinja2Templates
-from .settings import settings
+from .settings import admin_settings, SessionLocal
+
+from logging import getLogger
+log = getLogger("auth")
 
 templates = Jinja2Templates(directory="templates")
 auth_router = APIRouter()
-
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # in mins
-COOKIE_NAME = "access_token"
 
 class Token(BaseModel):
     access_token: str
@@ -51,7 +50,7 @@ class OAuth2PasswordBearerWithCookie(OAuth2):
 
 
     async def __call__(self, request: Request) -> Optional[str]:
-        authorization: str = request.cookies.get(COOKIE_NAME)
+        authorization: str = request.cookies.get(admin_settings.security.COOKIE_NAME)
         scheme, param = get_authorization_scheme_param(authorization)
         if not authorization or scheme.lower() != "bearer":
             if self.auto_error:
@@ -104,7 +103,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, admin_settings.security.SECRET_KEY, algorithm=admin_settings.security.ALGORITHM)
     return encoded_jwt
 
 
@@ -115,7 +114,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, admin_settings.security.SECRET_KEY, algorithms=[admin_settings.security.ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
@@ -149,12 +148,12 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=admin_settings.security.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     response.set_cookie(
-        key=COOKIE_NAME, 
+        key=admin_settings.security.COOKIE_NAME, 
         value=f"Bearer {access_token}", 
         httponly=True
     )  

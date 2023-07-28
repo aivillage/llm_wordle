@@ -1,0 +1,90 @@
+version: '2'
+
+services:
+  llm_wordle_admin:
+    build:
+      context: ../
+      dockerfile: dockers/Dockerfile.admin
+    user: root
+    restart: always
+    ports:
+      - "8001:8000"
+    volumes:
+      - ../.data/llm_wordle/admin_logs:/var/log/llm_wordle
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    networks:
+        default:
+        internal:
+    environment:
+      - PUBLIC_SETTINGS_FILE=public_settings.json
+      - ADMIN_SETTINGS_FILE=conf/admin_settings.json
+      - WORKERS=1
+      - LOG_FOLDER=/var/log/llm_wordle
+
+
+  llm_wordle_public:
+    build:
+      context: ../
+      dockerfile: dockers/Dockerfile.public
+    user: root
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../.data/llm_wordle/public_logs:/var/log/llm_wordle
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    networks:
+        default:
+        internal:
+    environment:
+      - PUBLIC_SETTINGS_FILE=public_settings.json
+      - WORKERS=1
+      - LOG_FOLDER=/var/log/llm_wordle
+
+  db:
+    image: mariadb:10.4.12
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=llm_wordle
+      - MYSQL_USER=llm_wordle
+      - MYSQL_PASSWORD=llm_wordle
+      - MYSQL_DATABASE=llm_wordle
+    volumes:
+      - ../.data/mysql:/var/lib/mysql
+    networks:
+        internal:
+    # This command is required to set important mariadb defaults
+    command: [mysqld, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --wait_timeout=28800, --log-warnings=0]
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
+
+  cache:
+    image: redis:4
+    restart: always
+    volumes:
+    - ../.data/redis:/data
+    networks:
+        internal:
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
+
+networks:
+    default:
+    internal:
+        internal: true

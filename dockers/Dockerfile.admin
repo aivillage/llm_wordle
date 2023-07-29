@@ -51,4 +51,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 USER 1001
 EXPOSE 8000
-ENTRYPOINT ["gunicorn","app.admin.main:admin_app"]
+ENTRYPOINT ["gunicorn","app.admin.main:admin_app", "--log-config", "logging.yml"]

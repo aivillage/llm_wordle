@@ -1,10 +1,10 @@
 from typing import List, Optional
 from fastapi import APIRouter, Request, status
-from fastapi.templating import Jinja2Templates
+
 from fastapi.responses import RedirectResponse
 from ..public.schema import Generation, Challenge, Model, User
+from ..public.index import templates
 from .settings import SessionLocal
-from .auth import create_user, get_current_user
 from sqlalchemy import select, func
 from sqlalchemy.orm import aliased
 import logging
@@ -12,7 +12,7 @@ import logging
 log = logging.getLogger("admin")
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+
 
 
 @router.get("/")

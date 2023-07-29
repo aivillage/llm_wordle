@@ -1,10 +1,24 @@
+from typing import Any
 from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter, Request
 import os, json
+import jinja2
+
+pass_context = jinja2.pass_context
+
 
 router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
+@pass_context
+def https_url_for(context: dict, name: str, **path_params: Any) -> str:
+    request = context["request"]
+    if os.getenv("PREFERRED_URL_SCHEME", "https") == "https":
+        request.scope["scheme"] = "https"
+
+    return request.url_for(name, **path_params)
+
+templates.env.globals["https_url_for"] = https_url_for
 
 @router.get("/")
 async def root(request: Request):

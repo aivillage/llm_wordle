@@ -11,3 +11,4 @@ dockers
 .venv*
 venv*
 .env
+Caddyfile*

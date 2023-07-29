@@ -1,7 +1,7 @@
 version: '2'
 
 services:
-  llm_wordle_admin:
+  llm_wordle:
     env_file:
       - ../.env
     build:
@@ -18,15 +18,17 @@ services:
         default:
         internal:
 
-  nginx:
-    image: nginx:stable
-    restart: always
-    volumes:
-      - ../nginx/http.conf:/etc/nginx/nginx.conf
+  caddy:
+    image: caddy:2.6.4-alpine
+    restart: unless-stopped
     ports:
-      - 80:80
-    depends_on:
-      - llm_wordle_admin
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ../Caddyfile.admin:/etc/caddy/Caddyfile
+      - ../.data/caddy/data:/data
+      - ../.data/caddy/config:/config
 
   cache:
     image: redis:4

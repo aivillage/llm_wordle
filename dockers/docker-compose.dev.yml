@@ -23,6 +23,7 @@ services:
         internal:
     environment:
       - ADMIN_PASSWORD=admin
+      - PREFERRED_URL_SCHEME=http
       - REDIS_URL=redis://cache:6379/0
       - REDIS_USERNAME=
       - REDIS_PASSWORD=
@@ -36,6 +37,18 @@ services:
       - ADMIN_SETTINGS_FILE=admin_settings.json
       - WORKERS=1
       - LOG_FOLDER=/var/log/llm_wordle
+
+  caddy:
+    image: caddy:2.6.4-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ../Caddyfile.dev:/etc/caddy/Caddyfile
+      - ../.data/caddy/data:/data
+      - ../.data/caddy/config:/config
 
   db:
     image: mariadb:10.4.12

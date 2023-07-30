@@ -23,6 +23,7 @@ services:
         internal:
     environment:
       - ADMIN_PASSWORD=admin
+      - SECRET_KEY=secret
       - PREFERRED_URL_SCHEME=http
       - REDIS_URL=redis://cache:6379/0
       - REDIS_USERNAME=

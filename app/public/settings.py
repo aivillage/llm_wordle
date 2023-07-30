@@ -22,6 +22,7 @@ class PublicSettings():
     redis: RedisSettings
     GEN_REQUESTS_PER_MINUTE: int # from file
     CHALLENGE_REQUESTS_PER_MINUTE: int # from file
+    SUBMISSIONS_PER_MINUTE: int = 1 # from file
 
     def __init__(self):
         file = os.getenv("PUBLIC_SETTINGS_FILE")

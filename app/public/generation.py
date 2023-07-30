@@ -35,6 +35,14 @@ async def global_identifier(request):
     return "global"
 
 
+async def user_identifier(request):
+    log.info(f"Getting user identifier")
+    if request.cookies.get("uuid") is None:
+        log.error(f"UUID not found in cookies!")
+        return "global"
+    return request.cookies.get("uuid")
+
+
 async def challenge_generate(challenge, prompt: str) -> Generation:
     full_prompt = challenge.model.full_prompt(challenge.preprompt, prompt)
     parameters = json.loads(challenge.model.parameters)
@@ -71,7 +79,7 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
         return GenerateResponse(generation=generation.generation, id=generation.id)
 
     
-@router.get("/challenge", dependencies=[Depends(RateLimiter(times=public_settings.CHALLENGE_REQUESTS_PER_MINUTE, minutes=1))])
+@router.get("/challenge", dependencies=[Depends(RateLimiter(times=public_settings.CHALLENGE_REQUESTS_PER_MINUTE, minutes=1, identifier=user_identifier))])
 async def get_challenge():
     with SessionLocal() as session:
         enabled_challenge_count = session.query(Challenge).filter(Challenge.enabled).count()
@@ -94,12 +102,13 @@ async def get_challenge():
 class SubmitRequest(BaseModel):
     generation_id: int
     reason: str
+    is_report: bool = False
 
 class SubmitResponse(BaseModel):
     message: str
     accepted: bool = True
     
-@router.post("/submit/")
+@router.post("/submit/", dependencies=[Depends(RateLimiter(times=public_settings.SUBMISSIONS_PER_MINUTE, minutes=1, identifier=user_identifier))])
 async def submit(request: SubmitRequest) -> SubmitResponse:
     log.info(f"Submitting generation {request.generation_id}")
     with SessionLocal() as session:
@@ -108,12 +117,17 @@ async def submit(request: SubmitRequest) -> SubmitResponse:
             return SubmitResponse(message="Generation not found!", accepted=False)
         if generation.submitted:
             return SubmitResponse(message="Already submitted!", accepted=False)
-        generation.submitted = True
+        if request.is_report:
+            generation.reported = True
+            response_msg = "Thanks for reporting!"
+        else:
+            generation.submitted = True
+            response_msg = "Thanks for submitting!"
         generation.reason = request.reason
         session.commit()
-    return SubmitResponse(message="Thanks for submitting!")
+    return SubmitResponse(message=response_msg)
 
-@router.post("/report/")
+@router.post("/report/", dependencies=[Depends(RateLimiter(times=public_settings.SUBMISSIONS_PER_MINUTE, minutes=1, identifier=user_identifier))])
 async def submit(request: SubmitRequest) -> SubmitResponse:
     log.info(f"Reporting generation {request.generation_id}")
     with SessionLocal() as session:

@@ -11,13 +11,13 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from ..public.schema import User
-from fastapi.templating import Jinja2Templates
+from ..public.index import templates
 from .settings import admin_settings, SessionLocal
 
 from logging import getLogger
 log = getLogger("auth")
 
-templates = Jinja2Templates(directory="templates")
+
 auth_router = APIRouter()
 
 class Token(BaseModel):
@@ -114,7 +114,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+        headers={"WWW-Authenticate": "Bearer", "Location": "/login/"},
     )
     try:
         payload = jwt.decode(token, admin_settings.security.SECRET_KEY, algorithms=[admin_settings.security.ALGORITHM])

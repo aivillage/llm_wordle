@@ -1,8 +1,8 @@
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Request, status, Depends
-from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from ..public.schema import User
+from ..public.index import templates
 from .settings import SessionLocal
 from .auth import get_current_active_user, create_user
 import logging
@@ -10,7 +10,6 @@ import logging
 log = logging.getLogger("admin")
 
 usr_router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 
 @usr_router.get("/add_user/")
@@ -58,3 +57,30 @@ async def add_user(request: Request, user: User = Depends(get_current_active_use
             return templates.TemplateResponse("add_user.html", {"request": request, "errors": ["User already exists."]})
         user = create_user(session, form.username, form.password)
     return RedirectResponse(f"/admin/", status.HTTP_302_FOUND)
+
+@usr_router.get("/users/")
+async def users(request: Request, user: User = Depends(get_current_active_user)):
+    if user is None:
+        return RedirectResponse("/login/", status.HTTP_302_FOUND)
+    if user.username != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    with SessionLocal() as session:
+        query = session.query(User.username, User.id)
+        users = query.all()
+    return templates.TemplateResponse("users.html", {"request": request, "users": users})
+
+@usr_router.get("/users/{user_id}/delete")
+async def delete_user(request: Request, user_id: int, user: User = Depends(get_current_active_user)):
+    if user is None:
+        return RedirectResponse("/login/", status.HTTP_302_FOUND)
+    if user.username != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    with SessionLocal() as session:
+        user = session.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        if user.username == "admin":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot delete admin user")
+        session.delete(user)
+        session.commit()
+    return RedirectResponse(f"/admin/users/", status.HTTP_302_FOUND)

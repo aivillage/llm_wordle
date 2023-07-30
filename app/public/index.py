@@ -1,4 +1,5 @@
 from typing import Any
+from uuid import uuid4
 from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter, Request
 import os, json
@@ -6,10 +7,9 @@ import jinja2
 
 pass_context = jinja2.pass_context
 
-
 router = APIRouter()
-
 templates = Jinja2Templates(directory="templates")
+
 @pass_context
 def https_url_for(context: dict, name: str, **path_params: Any) -> str:
     request = context["request"]
@@ -27,4 +27,13 @@ async def root(request: Request):
         assets = json.load(f)
     js_path = assets["assets/js/index.js"]["file"]
 
-    return templates.TemplateResponse("index.html", {"request": request, "js_path": js_path})
+    response = templates.TemplateResponse("index.html", {"request": request, "js_path": js_path})
+    
+    # Todo: jwt.encode() and jwt.decode() to store user info in cookie. It's just a uuid for now, but we need to make sure we made it.
+    # The code for the todo is in cookie.py, but we need error handling for when the cookie is invalid.
+    uuid = request.cookies.get("uuid")
+    if uuid is None:
+        uuid = str(uuid4())
+        response.set_cookie("uuid", uuid)
+
+    return response

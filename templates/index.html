@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div x-data="llm_challenge" class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 divide-y divide-gray-200">
+<div x-data="llm_challenge" class="flex min-h-full flex-col justify-center lg:px-8 divide-y divide-gray-200">
     <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3">
         <div class="mt-6 flex items-center justify-end gap-x-6">
             <h1 class="text-xlg font-semibold">Mosscap's Challenges</h1>
                 <div class="mt-2">
-                    <p class="text-sm text-gray-500">Here are some challenges designed to test prompts that LLMs have difficulty with. We're gathering the data and will open source it after DEF CON 31.</p>
+                    <p class="text-sm text-gray-500">Here are some challenges designed to test prompts that LLMs have difficulty with. These are warmups for the main event over in the AI Village at DEFCON 31. Write a prompt that causes the LLM to respond in a way that successfully satisfies the challenge.</p>
                 </div>
         </div>
     </div>
@@ -91,6 +91,10 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3">
+        <p class="text-sm text-gray-500">We're gathering the data and will open source it after DEF CON 31.</p>
     </div>
 
 </div>

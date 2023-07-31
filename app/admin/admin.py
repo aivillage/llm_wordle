@@ -13,68 +13,40 @@ log = logging.getLogger("admin")
 
 router = APIRouter()
 
+def get_models(session: SessionLocal):
+    query = select(Model.id, Model.name, url=Model.url, parameters=Model.parameters, prompt_format=Model.prompt_format)
+    models = session.execute(query).all()
+    final_models = []
+    for model in models:
+        final_models.append({
+            "id": model[0],
+            "name": model[1],
+        })
+    return final_models
 
-
-@router.get("/")
-async def admin_root(request: Request):
-    with SessionLocal() as session:
-        model_name_alias = aliased(Model, name="model_name")
-        query = select(Challenge.id, Challenge.name, Challenge.description, Challenge.preprompt, Challenge.enabled).add_columns(model_name_alias.name).join(model_name_alias)
-        challenges = session.execute(query).all()
-        final_challenges = []
-        for challenge in challenges:
-            num_generations = session.query(func.count(Generation.id)).filter(Generation.challenge_id == challenge[0]).scalar()
-            num_submissions = session.query(func.count(Generation.id)).filter(Generation.challenge_id == challenge[0]).filter(Generation.submitted).scalar()
-            final_challenges.append({
-                "id": challenge[0],
-                "name": challenge[1],
-                "description": challenge[2],
-                "preprompt": challenge[3],
-                "enabled": challenge[4],
-                "model": challenge[5],
-                "num_generations": num_generations,
-                "num_submissions": num_submissions,
-            })
-    return templates.TemplateResponse("admin.html", {"request": request, "challenges": final_challenges})
-
-
-class ChallengeForm:
-    def __init__(self, request: Request):
-        self.request: Request = request
-        self.errors: List = []
-        self.name: Optional[str] = None
-        self.description: Optional[str] = None
-        self.preprompt: Optional[str] = None
-        self.model: Optional[str] = None
-
-    async def load_data(self):
-        form = await self.request.form()
-        self.name = form.get("name")
-        self.description = form.get("description")
-        self.preprompt = form.get("preprompt")
-        self.model = form.get("model")
-
-
-@router.get("/challenge/new")
-async def new_challenge(request: Request):
-    return templates.TemplateResponse("new_challenge.html", {"request": request})
-
-@router.post("/challenge/new")
-async def new_challenge(request: Request):
-    form = ChallengeForm(request)
-    await form.load_data()
-    try:
-        with SessionLocal() as session:
-            model = session.query(Model).first()
-            challenge = Challenge(name=form.name, description=form.description, preprompt=form.preprompt, model=model)
-            session.add(challenge)
-            session.commit()
-        response = RedirectResponse("/admin/", status.HTTP_302_FOUND)
-        return response
-    except:
-        form.__dict__.update(msg="")
-        form.__dict__.get("errors").append("I don't know what happened.")
-        return templates.TemplateResponse("new_challenge.html", {"request": request})
+def get_challenges(session: SessionLocal, challenge_id: Optional[int] = None):
+    model_name_alias = aliased(Model, name="model_name")
+    query = select(Challenge.id, Challenge.name, Challenge.description, Challenge.preprompt, Challenge.enabled).add_columns(model_name_alias.name).join(model_name_alias)
+    if challenge_id is not None:
+        query = query.where(Challenge.id == challenge_id)
+    challenges = session.execute(query).all()
+    final_challenges = []
+    for challenge in challenges:
+        num_generations = session.query(func.count()).filter(Generation.challenge_id == challenge_id).scalar()
+        num_submissions = session.query(func.count()).filter(Generation.challenge_id == challenge_id).filter(Generation.submitted == True).scalar()
+        
+        final_challenge = {
+            "id": challenge[0],
+            "name": challenge[1],
+            "description": challenge[2],
+            "preprompt": challenge[3],
+            "enabled": challenge[4],
+            "model": challenge[5],
+            "num_generations": num_generations,
+            "num_submissions": num_submissions,
+        }
+        final_challenges.append(final_challenge)
+    return final_challenges
 
 def get_generations(session: SessionLocal, request: Request, challenge_id: Optional[int] = None):
     filter = {}
@@ -107,16 +79,62 @@ def get_generations(session: SessionLocal, request: Request, challenge_id: Optio
             "generation": generation[2],
             "reason": generation[3],
             "submitted": generation[4],
-            "reportd": generation[5],
+            "report": generation[5],
             "challenge": generation[6],
         })
     return final_generations
+
+@router.get("/")
+async def admin_root(request: Request):
+    with SessionLocal() as session:
+        final_challenges = get_challenges(session)
+    return templates.TemplateResponse("admin.html", {"request": request, "challenges": final_challenges})
+
+
+class ChallengeForm:
+    def __init__(self, request: Request):
+        self.request: Request = request
+        self.errors: List = []
+        self.name: Optional[str] = None
+        self.description: Optional[str] = None
+        self.preprompt: Optional[str] = None
+        self.model: Optional[str] = None
+
+    async def load_data(self):
+        form = await self.request.form()
+        self.name = form.get("name")
+        self.description = form.get("description")
+        self.preprompt = form.get("preprompt")
+        self.model = form.get("model")
+
+
+@router.get("/challenge/new")
+async def new_challenge(request: Request):
+    return templates.TemplateResponse("new_challenge.html", {"request": request})
+
+
+@router.post("/challenge/new")
+async def new_challenge(request: Request):
+    form = ChallengeForm(request)
+    await form.load_data()
+    try:
+        with SessionLocal() as session:
+            model = session.query(Model).first()
+            challenge = Challenge(name=form.name, description=form.description, preprompt=form.preprompt, model=model)
+            session.add(challenge)
+            session.commit()
+        response = RedirectResponse("/admin/", status.HTTP_302_FOUND)
+        return response
+    except:
+        form.__dict__.update(msg="")
+        form.__dict__.get("errors").append("I don't know what happened.")
+        return templates.TemplateResponse("new_challenge.html", {"request": request})
+
 
 @router.get("/generations/")
 async def view_generations(request: Request):
     with SessionLocal() as session:
         final_generations = get_generations(session, request)
-
     return templates.TemplateResponse("generations.html", {"request": request, "challenge": None, "generations": final_generations})
 
 @router.get("/generations/{challenge_id}")
@@ -124,24 +142,9 @@ async def challenge_generations(challenge_id: int, request: Request):
     with SessionLocal() as session:
         # gets all generations for all challenges
         final_generations = get_generations(session, request, challenge_id=challenge_id)
-            
-        model_name_alias = aliased(Model, name="model_name")
-        query = select(Challenge.id, Challenge.name, Challenge.description, Challenge.preprompt, Challenge.enabled).add_columns(model_name_alias.name).join(model_name_alias).where(Challenge.id == challenge_id)
-        challenge = session.execute(query).first()
-        num_generations = session.query(func.count()).filter(Generation.challenge_id == challenge_id).scalar()
-        num_submissions = session.query(func.count()).filter(Generation.challenge_id == challenge_id).filter(Generation.submitted == True).scalar()
-            
-        final_challenge = {
-            "id": challenge[0],
-            "name": challenge[1],
-            "description": challenge[2],
-            "preprompt": challenge[3],
-            "enabled": challenge[4],
-            "model": challenge[5],
-            "num_generations": num_generations,
-            "num_submissions": num_submissions,
-        }        
-    return templates.TemplateResponse("generations.html", {"request": request, "challenges": [final_challenge], "generations": final_generations})
+        final_challenges = get_challenges(session, challenge_id)
+        
+    return templates.TemplateResponse("generations.html", {"request": request, "challenges": final_challenges, "generations": final_generations})
 
 @router.get("/toggle_challenge/{challenge_id}")
 async def toggle_challenge(challenge_id: int):
@@ -150,3 +153,10 @@ async def toggle_challenge(challenge_id: int):
         challenge.enabled = not challenge.enabled
         session.commit()
     return RedirectResponse(f"/admin/", status.HTTP_302_FOUND)
+
+
+@router.get("/models/")
+async def view_models(request: Request):
+    with SessionLocal() as session:
+        models = get_models(session)
+    return templates.TemplateResponse("models.html", {"request": request, "models": models})

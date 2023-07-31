@@ -43,7 +43,7 @@ async def user_identifier(request):
     return request.cookies.get("uuid")
 
 
-async def challenge_generate(challenge, prompt: str) -> Generation:
+async def challenge_generate(challenge: Challenge, prompt: str) -> Generation:
     full_prompt = challenge.model.full_prompt(challenge.preprompt, prompt)
     parameters = json.loads(challenge.model.parameters)
     log.info(f"Generating with prompt: {full_prompt}")

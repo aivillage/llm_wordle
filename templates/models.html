@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "admin_nav.html" %}
+
+<div class="px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center">
+      <div class="sm:flex-auto">
+        <h1 class="text-base font-semibold leading-6 text-gray-900">Models</h1>
+      </div>
+    </div>
+    <div class="mt-8 flow-root">
+      <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+          <table class="min-w-full divide-y divide-gray-300">
+            <thead>
+              <tr>
+                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 w-40">Model Name</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Url</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Parameters</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Prompt Format</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Delete?</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              {% for model in models %}
+              <tr>
+                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ model.name }}</td>
+                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ model.url }}</td>
+                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ model.parameters }}</td>
+                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ model.prompt_format }}</td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 break-normal">
+                    <a href="{{ https_url_for('delete_model', model_id = model.id) }}?submitted=True" class="text-indigo-600 hover:text-indigo-900">Delete</a>
+                </td>
+              {% endfor %}
+              <!-- More people... -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

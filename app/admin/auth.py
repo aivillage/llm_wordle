@@ -11,13 +11,13 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from ..public.schema import User
-from fastapi.templating import Jinja2Templates
+from ..public.index import templates
 from .settings import admin_settings, SessionLocal
 
 from logging import getLogger
 log = getLogger("auth")
 
-templates = Jinja2Templates(directory="templates")
+
 auth_router = APIRouter()
 
 class Token(BaseModel):
@@ -90,6 +90,9 @@ def authenticate_user(session, username: str, password: str):
 
 
 def create_user(session, username: str, password: str) -> User:
+    existing_user = session.query(User).filter(User.username == username).first()
+    if existing_user:
+        raise ValueError(f"User {username} already exists")
     user = User(username=username, hashed_password=get_password_hash(password), disabled=False)
     session.add(user)
     session.commit()
@@ -111,7 +114,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+        headers={"WWW-Authenticate": "Bearer", "Location": "/login/"},
     )
     try:
         payload = jwt.decode(token, admin_settings.security.SECRET_KEY, algorithms=[admin_settings.security.ALGORITHM])
@@ -192,19 +195,3 @@ async def login(request: Request):
         form.__dict__.update(msg="")
         form.__dict__.get("errors").append("Incorrect Email or Password")
         return templates.TemplateResponse("login.html", {"request": request})
-
-
-# A simple CLI to add/remove keys.
-def main():
-    print("Editing Keystore")
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--user", type=str, required=True, help="Add user.")
-    parser.add_argument("--password", type=str, required=True, help="Password for user.")
-    
-    args = parser.parse_args()
-    with SessionLocal() as session:
-        create_user(session, args.user, args.password)
-
-if __name__ == '__main__':
-    main()

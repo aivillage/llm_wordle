@@ -31,7 +31,10 @@ WORKDIR /opt/llm_wordle
 COPY --chown=1001:1001 --from=build /opt/llm_wordle/app/ /opt/llm_wordle/app/
 COPY --chown=1001:1001 --from=build /opt/llm_wordle/conf/ /opt/llm_wordle/conf/
 COPY --chown=1001:1001 --from=build /opt/llm_wordle/templates /opt/llm_wordle/templates
-COPY --chown=1001:1001 --from=build /opt/llm_wordle/public_settings.json /opt/llm_wordle/public_settings.json
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/public_settings.dev.json /opt/llm_wordle/public_settings.dev.json
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/admin_settings.dev.json /opt/llm_wordle/admin_settings.dev.json
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/logging.yml /opt/llm_wordle/logging.yml
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/gunicorn.conf.py /opt/llm_wordle/gunicorn.conf.py
 
 
 RUN useradd \
@@ -48,4 +51,5 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 USER 1001
 EXPOSE 8000
-ENTRYPOINT ["uvicorn","--factory","app.admin.main:app", "--host", "0.0.0.0"]
+ENTRYPOINT ["gunicorn","app.admin.main:admin_app"] 
+#, "--log-config", "logging.yml"]

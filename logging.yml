@@ -119,7 +119,7 @@ loggers:
     level: INFO
     handlers:
       - app_default
-      - admin_file_handler
+      - auth_file_handler
     propagate: no
 
   uvicorn.error:

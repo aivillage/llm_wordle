@@ -21,23 +21,8 @@ services:
     networks:
         default:
         internal:
-    environment:
-      - ADMIN_PASSWORD=admin
-      - SECRET_KEY=secret
-      - PREFERRED_URL_SCHEME=http
-      - REDIS_URL=redis://cache:6379/0
-      - REDIS_USERNAME=
-      - REDIS_PASSWORD=
-      - DATABASE_PROTOCOL=mysql+pymysql
-      - DATABASSE_USER=llm_wordle
-      - DATABASE_PASSWORD=llm_wordle
-      - DATABASE_HOST=db
-      - DATABAE_PORT=
-      - DATABASE_NAME=llm_wordle
-      - PUBLIC_SETTINGS_FILE=public_settings.dev.json
-      - ADMIN_SETTINGS_FILE=admin_settings.dev.json
-      - WORKERS=1
-      - LOG_FOLDER=/var/log/llm_wordle
+    env_file:
+      - ../.env_dev
 
   caddy:
     image: caddy:2.6.4-alpine

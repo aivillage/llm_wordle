@@ -2,73 +2,80 @@
 
 {% block content %}
 <div x-data="llm_challenge" class="flex min-h-full flex-col justify-center lg:px-8 divide-y divide-gray-200">
-    <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3">
-        <div class="mt-6 flex items-center justify-end gap-x-6">
-            <h1 class="text-xlg font-semibold">Mosscap's Challenges</h1>
+    <div class="mx-auto lg:w-full max-w-md py-3">
+        <div>
+            <div class="mt-6 flex items-center justify-end gap-x-6">
+                <h1 class="text-xlg font-semibold">Mosscap's Challenges</h1>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500">Here are some challenges designed to test prompts that LLMs have difficulty with. These are warmups for the main event over in the AI Village at DEFCON 31. Write a prompt that causes the LLM to respond in a way that successfully satisfies the challenge.</p>
+                    </div>
+            </div>
+        </div>
+
+        <div x-show="challenge_first_load">
+            <div class="mt-6 flex items-center justify-end gap-x-6">
+                <h2 x-text="name" class="text-lg font-semibold">We're a bit overloaded</h2>
+                <div>Sorry!</div>
+                <button @click.throttle.750ms="new_challenge()" type="button" class="inline-flex w-full justify-center rounded-md bg-green-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-ring-green-700">Load Challenge</button>
+            </div>
+        </div>
+        <div x-show="challenge_loaded">
+            <div>
+                <h2 x-text="name" class="text-lg font-semibold"></h2>
+                <div x-text="description"></div>
+            </div>
+            <div class="mt-6 flex items-center justify-end gap-x-6">
+                <button @click.throttle.750ms="new_challenge()" type="button" class="text-sm font-semibold leading-6 text-gray-900">New Challenge</button>
+            </div>
+        </div>
+        <div x-show="challenge_loaded">
+            <div>
+                <label for="comment" class="block text-sm font-medium leading-6 text-gray-900">Prompt</label>
                 <div class="mt-2">
-                    <p class="text-sm text-gray-500">Here are some challenges designed to test prompts that LLMs have difficulty with. These are warmups for the main event over in the AI Village at DEFCON 31. Write a prompt that causes the LLM to respond in a way that successfully satisfies the challenge.</p>
+                    <textarea x-model="input" @keyup.enter="generate()" rows="6" name="comment" id="comment" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-700 sm:text-sm sm:leading-6"></textarea>
                 </div>
+                <div class="mt-6 flex items-center justify-end gap-x-6">
+                    <button @click.throttle.750ms="generate()" type="button" class="inline-flex items-center rounded-md bg-green-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">Generate</button>
+                </div>
+            </div>
+            <div>
+                <div class="mt-2 gap-x-6 py-1">
+                    <!--Don't bother editing this as the text is server side.-->
+                    <div x-text="output" name="comment" id="comment" class="min-h-[200px] block overflow-y-scroll w-full rounded-md border-0 py-1.5 px-2.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-700 sm:text-sm sm:leading-6"></div>
+                </div>
+                
+                <div class="mt-6 flex items-center justify-end gap-x-6">
+                    <button @click.throttle.750ms="clear()" type="button" class="text-sm font-semibold leading-6 text-gray-900">Clear</button>
+                    <div>
+                        <button @click.throttle.750ms="show_submission(true)" x-on:mouseenter="tooltip = true" x-on:mouseleave="tooltip = false" type="button" class="text-sm font-semibold leading-6 text-gray-900">Report</button>
+                    </div>
+                    <div class="object-left">
+                        <button @click.throttle.750ms="show_submission(false)" x-on:mouseenter="tooltip = true" x-on:mouseleave="tooltip = false" type="button" class="inline-flex items-center rounded-md bg-green-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">Submit</button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3" x-show="challenge_first_load">
-        <div class="mt-6 flex items-center justify-end gap-x-6">
-            <h2 x-text="name" class="text-lg font-semibold">We're a bit overloaded</h2>
-            <div>Sorry!</div>
-            <button @click.throttle.750ms="new_challenge()" type="button" class="inline-flex w-full justify-center rounded-md bg-green-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-ring-green-700">Load Challenge</button>
-        </div>
-    </div>
-    <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3" x-show="challenge_loaded">
-        <div>
-            <h2 x-text="name" class="text-lg font-semibold"></h2>
-            <div x-text="description"></div>
-        </div>
-        <div class="mt-6 flex items-center justify-end gap-x-6">
-            <button @click.throttle.750ms="new_challenge()" type="button" class="text-sm font-semibold leading-6 text-gray-900">New Challenge</button>
-        </div>
-    </div>
-    <div x-show="challenge_loaded">
-        <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3">
-            <label for="comment" class="block text-sm font-medium leading-6 text-gray-900">Prompt</label>
-            <div class="mt-2">
-                <textarea x-model="input" @keyup.enter="generate()" rows="6" name="comment" id="comment" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-700 sm:text-sm sm:leading-6"></textarea>
-            </div>
-            <div class="mt-6 flex items-center justify-end gap-x-6">
-                <button @click.throttle.750ms="generate()" type="button" class="inline-flex items-center rounded-md bg-green-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">Generate</button>
-            </div>
-        </div>
-        <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3">
-            <div class="mt-2 gap-x-6 py-1">
-                <!--Don't bother editing this as the text is server side.-->
-                <div x-text="output" name="comment" id="comment" class="min-h-[200px] block overflow-y-scroll w-full rounded-md border-0 py-1.5 px-2.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-700 sm:text-sm sm:leading-6"></div>
-            </div>
-            
-            <div class="mt-6 flex items-center justify-end gap-x-6">
-                <button @click.throttle.750ms="clear()" type="button" class="text-sm font-semibold leading-6 text-gray-900">Clear</button>
-                <div>
-                    <button @click.throttle.750ms="show_submission(true)" x-on:mouseenter="tooltip = true" x-on:mouseleave="tooltip = false" type="button" class="text-sm font-semibold leading-6 text-gray-900">Report</button>
+        <div x-show="submission_window">
+            <div>
+                <div x-text="submission_text"></div>
+                <div class="mt-2 gap-x-6 py-1">
+                    <textarea x-model="reason" rows="3" name="comment" id="comment" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-700 sm:text-sm sm:leading-6"></textarea>
                 </div>
-                <div class="object-left">
-                    <button @click.throttle.750ms="show_submission(false)" x-on:mouseenter="tooltip = true" x-on:mouseleave="tooltip = false" type="button" class="inline-flex items-center rounded-md bg-green-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">Submit</button>
+            </div>
+            <div x-show="showing_submission">
+                <div class="mt-5 sm:mt-6">
+                    <button @click.throttle.750ms="submit(false)" type="button" class="inline-flex w-full justify-center rounded-md bg-green-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-ring-green-700">Submit & Try Again</button>
+                </div>
+                <div class="mt-5 sm:mt-6">
+                    <button @click.throttle.750ms="submit(true)" type="button" class="inline-flex w-full justify-center rounded-md bg-green-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-ring-green-700">Submit & New Challenge</button>
                 </div>
             </div>
         </div>
-    </div>
+    
 
-    <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3" x-show="submission_window">
         <div>
-            <div x-text="submission_text"></div>
-            <div class="mt-2 gap-x-6 py-1">
-                <textarea x-model="reason" rows="3" name="comment" id="comment" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-700 sm:text-sm sm:leading-6"></textarea>
-            </div>
-        </div>
-        <div x-show="showing_submission">
-            <div class="mt-5 sm:mt-6">
-                <button @click.throttle.750ms="submit(false)" type="button" class="inline-flex w-full justify-center rounded-md bg-green-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-ring-green-700">Submit & Try Again</button>
-            </div>
-            <div class="mt-5 sm:mt-6">
-                <button @click.throttle.750ms="submit(true)" type="button" class="inline-flex w-full justify-center rounded-md bg-green-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-ring-green-700">Submit & New Challenge</button>
-            </div>
+            <p class="text-sm text-gray-500">We're gathering the data and will open source it after DEF CON 31.</p>
         </div>
     </div>
     <div x-show="error">
@@ -92,11 +99,6 @@
             </div>
         </div>
     </div>
-
-    <div class="sm:mx-auto sm:w-full sm:max-w-lg py-3">
-        <p class="text-sm text-gray-500">We're gathering the data and will open source it after DEF CON 31.</p>
-    </div>
-
 </div>
 {% endblock %}
 {% block scripts %}

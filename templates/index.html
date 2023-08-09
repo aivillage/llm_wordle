@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div x-data="llm_challenge" class="flex min-h-full flex-col justify-center lg:px-8 divide-y divide-gray-200">
+<div x-data="llm_challenge" class="flex min-h-full flex-col justify-center px-5 divide-y divide-gray-200">
     <div class="mx-auto lg:w-full max-w-md py-3">
         <div>
             <div class="mt-6 flex items-center justify-end gap-x-6">
@@ -76,6 +76,28 @@
 
         <div>
             <p class="text-sm text-gray-500">We're gathering the data and will open source it after DEF CON 31.</p>
+
+
+            <div class="flex">
+                <div class="flex justify-center">
+                    <div class="mr-4 flex-shrink-0 self-center">
+                    <img class="mt-6 h-20 w-20" src="{{ https_url_for('static', path='/img/aiv_logo.png') }}" alt="AI Village Logo">
+                    </div>
+                    <div class="self-center">
+                    <h4 class="text-lg font-bold">Built by AI Village</h4>
+                    <p class="mt-1"></p>
+                    </div>
+                </div>
+                <div class="flex justify-center">
+                    <div class="mr-4 flex-shrink-0 self-center">
+                    <img class="mt-6 h-20 w-20" src="{{ https_url_for('static', path='/img/hf_head_logo.svg') }}" alt="AI Village Logo">
+                    </div>
+                    <div class="self-center">
+                    <h4 class="text-lg font-bold">Compute Provided by Huggingface</h4>
+                    <p class="mt-1"></p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div x-show="error">

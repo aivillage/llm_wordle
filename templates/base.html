@@ -1,17 +1,19 @@
 <!doctype html>
-<html class="h-full bg-white">
+<html>
 <head>
     <title>LLM Challenge of the Day</title>
     <link rel="shortcut icon" href="{{ https_url_for('static', path='/img/favicon.ico') }}">
     <link href="{{ https_url_for('static', path='/css/styles.css') }}" rel="stylesheet">
+    <!-- Load Azeret Mono Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body class="h-full">
-    <main>
+<body>
+<main class="font-azeret-mono">
     {% block content %}
     {% endblock %}
-    </main>
-    {% block scripts %}
-    {% endblock %}
+</main>
+{% block scripts %}
+{% endblock %}
 </body>
 </html>

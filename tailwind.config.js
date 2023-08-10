@@ -2,7 +2,11 @@
 export default {
   content: ["./templates/*.html"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        'azeret-mono': ['Azeret Mono', 'monospace'],
+      },
+    },
   },
   plugins: [
     require('@tailwindcss/forms'),

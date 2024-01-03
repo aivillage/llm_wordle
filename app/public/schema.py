@@ -38,12 +38,10 @@ class Generation(Base):
 class Challenge(Base):
     __tablename__ = "challenge"
     id: Mapped[int] = mapped_column(primary_key=True)
-    model_id: Mapped[int] = mapped_column(ForeignKey("model.id"))
     name: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text)
     preprompt: Mapped[str] = mapped_column(Text)
     enabled: Mapped[bool] = mapped_column(default=True)
-    model: Mapped["Model"] = relationship()
 
     def __repr__(self) -> str:
         return f"Challenge(id={self.id!r}, name={self.name!r})"
@@ -53,16 +51,11 @@ class Model(Base):
     __tablename__ = "model"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(200))
-    url: Mapped[str] = mapped_column(String(200))
-    key: Mapped[str] = mapped_column(String(200))
-    parameters: Mapped[str] = mapped_column(Text)
-    prompt_format: Mapped[dict] = mapped_column(JSON)
+    description: Mapped[str] = mapped_column(Text)
+    active: Mapped[bool] = mapped_column(default=True)
 
     def __repr__(self) -> str:
-        return f"Model(id={self.id!r}, name={self.name!r}), url={self.url!r}"
-    
-    def full_prompt(self, preprompt: str, prompt: str) -> str:
-        return self.prompt_format.replace("{preprompt}", preprompt).replace("{prompt}", prompt)
+        return f"Model(id={self.id!r}, name={self.name!r}), url={self.url!r}, description={self.description!r}, active={self.active!r})"
 
 
 class User(Base):

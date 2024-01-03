@@ -1,21 +1,22 @@
 from logging import getLogger
-from typing import Optional
-import random, json
+import time
+from typing import List, Optional
+import random
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 from fastapi_limiter.depends import RateLimiter
-import aiohttp
 
-from .schema import Challenge, Generation
+from .schema import Challenge, Generation, Model
 from .settings import SessionLocal, public_settings
+from .remote_llm import generate_text
 router = APIRouter()
 log = getLogger("generator")
 
 
 class GenerateRequest(BaseModel):
     prompt: str
+    model: str
 
 
 class GenerateResponse(BaseModel):
@@ -30,8 +31,42 @@ class ChallengeResponse(BaseModel):
     description: str
     error: Optional[str] = None
 
+class ActiveModel(BaseModel):
+    name: str
+    description: str
 
-async def global_identifier(request):
+class ActiveModels(BaseModel):
+    models: List[ActiveModel]
+
+class ActiveModelsCache:
+    active_models: ActiveModels
+    last_refresh: int
+
+    async def refresh(self):
+        with SessionLocal() as session:
+            models = session.query(Model).all()
+            try:
+                active_models = get_models()
+            except:
+                log.error("Error getting models from LLM Router")
+                active_models = []
+            for model in models:
+                if model.name not in active_models:
+                    model.active = False
+                else:
+                    model.active = True
+            session.commit()
+            self.active_models.models = [ActiveModel(name=model.name, description=model.description) for model in models if model.active]
+            self.last_refresh = int(time.time())
+
+    def __init__(self):
+        self.last_refresh = 0
+        self.active_models = ActiveModels(models=[])
+        self.refresh()
+
+active_models_cache = ActiveModelsCache()
+
+async def global_identifier(_request):
     return "global"
 
 
@@ -42,24 +77,11 @@ async def user_identifier(request):
         return "global"
     return request.cookies.get("uuid")
 
-
-async def challenge_generate(challenge: Challenge, prompt: str) -> Generation:
-    full_prompt = challenge.model.full_prompt(challenge.preprompt, prompt)
-    parameters = json.loads(challenge.model.parameters)
-    log.info(f"Generating with prompt: {full_prompt}")
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url=challenge.model.url,
-                        headers={'Authorization': f'Bearer {challenge.model.key}'},
-                        json={'inputs': full_prompt, "parameters" : parameters, "stream:": False}) as raw_response:
-            json_response = await raw_response.json()
-            if 'error' in json_response:
-                log.error(f"Error generating: {json_response['error']}")
-                raise HTTPException(
-                    HTTP_429_TOO_MANY_REQUESTS, "Too Many Requests", headers={"Retry-After": str(1000)}
-                )
-    generated_text = json_response[0]['generated_text']
-    return Generation(prompt=prompt, generation=generated_text, challenge=challenge)
-
+@router.get("models", dependencies=[Depends(RateLimiter(times=public_settings.CHALLENGE_REQUESTS_PER_MINUTE, minutes=1, identifier=user_identifier))])
+async def get_models() -> ActiveModels:
+    if active_models_cache.last_refresh + 60 < int(time.time()):
+        await active_models_cache.refresh()
+    return active_models_cache.active_models
 
 @router.post("/generate/{challenge_id}", dependencies=[Depends(RateLimiter(times=public_settings.GEN_REQUESTS_PER_MINUTE, minutes=1, identifier=global_identifier))])
 async def generate(challenge_id: int, request: GenerateRequest) -> GenerateResponse:
@@ -70,10 +92,25 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
         if generation:
             log.info("Duplicate generation found")
             return GenerateResponse(error="Duplicate prompt found, try something else.")
+        # Check that the model is active
+        model = session.query(Model).filter(Model.name == request.model).first()
+        if model is not None and not model.active:
+            log.error(f"Model {model.name} is not active!")
+            return GenerateResponse(error="Model not active!")
+ 
         challenge = session.query(Challenge).filter(Challenge.id == challenge_id).first()
         if challenge is None:
+            log.error(f"Challenge {challenge_id} not found!")
             return GenerateResponse(error="Challenge not found!")
-        generation = await challenge_generate(challenge, request.prompt)
+        
+        generation = await generate_text(challenge.preprompt, request.prompt, request.model)
+        log.info(f"Generated: {generation}")
+        generation = Generation(
+            challenge_id=challenge_id,
+            model_id=model.id,
+            prompt=request.prompt,
+            generation=generation,
+        )
         session.add(generation)
         session.commit()
         return GenerateResponse(generation=generation.generation, id=generation.id)

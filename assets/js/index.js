@@ -14,6 +14,9 @@ Alpine.data('llm_challenge', () => ({
     number_of_loaded_challenges: 0,
     challenge_first_load: true,
 
+    models: [],
+    selected_model: "",
+
     output: "Generated Text",
     reason: "",
     generation_id: -1,
@@ -26,6 +29,23 @@ Alpine.data('llm_challenge', () => ({
 
     async init() {
         await this.new_challenge();
+        await this.load_models();
+    },
+
+    async load_models() {
+        const response = await fetch("/api/models");
+        if (response.status != 200) {
+            this.error = "Something went wrong. Please try again later.";
+        };
+        const data = await response.json();
+        this.models = data.models;
+        if (this.models.length > 0) {   
+            this.selected_model = data.models[0];
+        }
+    },
+
+    async select_model(model) {
+        this.selected_model = model;
     },
 
     async close_error() {
@@ -67,7 +87,7 @@ Alpine.data('llm_challenge', () => ({
         this.error = "";
     },
 
-    async generate() {
+    async generate(model) {
         if (this.input == "") {
             this.error = "Please enter a prompt.";
             return;
@@ -85,6 +105,7 @@ Alpine.data('llm_challenge', () => ({
             },
             body: JSON.stringify({
                 prompt: this.input,
+                model: model,
             })
         });
         if (response.status == 429) {

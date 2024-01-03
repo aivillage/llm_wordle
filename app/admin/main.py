@@ -22,10 +22,8 @@ def load_models(path):
                 continue
             model = Model(
                 name=model["name"],
-                url=model["url"],
-                parameters=json.dumps(model["parameters"]),
-                prompt_format=model["prompt_format"],
-                key=admin_settings.security.HUGGINGFACE_API_KEY,
+                description=model["description"],
+                active=True,
             )
             session.add(model)
         session.commit()
@@ -38,13 +36,6 @@ def load_challenges(path):
         for challenge in challenges:
             if "enabled" not in challenge:
                 challenge["enabled"] = True
-            if "model" not in challenge:
-                model = session.query(Model).first()
-            else:
-                model = session.query(Model).filter(Model.name == challenge["model"]).first()
-                if not model:
-                    log.info(f"Model {challenge['model']} not found for challenge {challenge['name']}, skipping.")
-                    continue
             if session.query(Challenge).filter(Challenge.name == challenge["name"]).first():
                 log.info(f"Challenge {challenge['name']} already exists, skipping.")
                 continue
@@ -52,7 +43,6 @@ def load_challenges(path):
                 name=challenge["name"],
                 description=challenge["description"],
                 preprompt=challenge["preprompt"],
-                model=model,
             )
             log.info(f"Adding challenge {challenge.name}")
             session.add(challenge)
@@ -61,14 +51,18 @@ def load_challenges(path):
 
 def make_admin_app():
     app = make_app()
-    if os.path.exists("conf/models.json"):
+    config_folder = os.environ.get('CONFIG_FOLDER')
+    if config_folder is None:
+        raise ValueError('The config file is not set')
+    if os.path.exists(os.path.join(config_folder,"models.json")):
         log.info(f"Loading models from conf/models.json")
-        load_models("conf/models.json")
+        load_models(os.path.join(config_folder,"models.json"))
     else:
-        log.info(f"Models file not found at conf/models.json")
-    if os.path.exists("conf/challenges.json"):
+        log.info(f"Models file not found at {os.path.join(config_folder,'models.json')}")
+
+    if os.path.exists(os.path.join(config_folder,"challenges.json")):
         log.info(f"Loading challenges from conf/challenges.json")
-        load_challenges("conf/challenges.json")
+        load_challenges(os.path.join(config_folder,"challenges.json"))
     else:
         log.info(f"Challenges file not found at conf/challenges.json")
 

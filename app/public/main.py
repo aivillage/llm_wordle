@@ -5,7 +5,9 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from .generation import router as generation_router
 from .index import router as index_router
-from .settings import RedisLocal
+from .settings import RedisLocal, SessionLocal
+from .schema import Model
+from .remote_llm import get_models
 
 from logging import getLogger
 log = getLogger("public")
@@ -18,7 +20,6 @@ async def lifespan(app: FastAPI):
     await FastAPILimiter.init(RedisLocal)
     yield
     pass
-
 
 def make_app():
     app = FastAPI(

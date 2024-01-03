@@ -29,19 +29,6 @@ Alpine.data('llm_challenge', () => ({
 
     async init() {
         await this.new_challenge();
-        await this.load_models();
-    },
-
-    async load_models() {
-        const response = await fetch("/api/models");
-        if (response.status != 200) {
-            this.error = "Something went wrong. Please try again later.";
-        };
-        const data = await response.json();
-        this.models = data.models;
-        if (this.models.length > 0) {   
-            this.selected_model = data.models[0];
-        }
     },
 
     async select_model(model) {

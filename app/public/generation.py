@@ -31,41 +31,6 @@ class ChallengeResponse(BaseModel):
     description: str
     error: Optional[str] = None
 
-class ActiveModel(BaseModel):
-    name: str
-    description: str
-
-class ActiveModels(BaseModel):
-    models: List[ActiveModel]
-
-class ActiveModelsCache:
-    active_models: ActiveModels
-    last_refresh: int
-
-    async def refresh(self):
-        with SessionLocal() as session:
-            models = session.query(Model).all()
-            try:
-                active_models = get_models()
-            except:
-                log.error("Error getting models from LLM Router")
-                active_models = []
-            for model in models:
-                if model.name not in active_models:
-                    model.active = False
-                else:
-                    model.active = True
-            session.commit()
-            self.active_models.models = [ActiveModel(name=model.name, description=model.description) for model in models if model.active]
-            self.last_refresh = int(time.time())
-
-    def __init__(self):
-        self.last_refresh = 0
-        self.active_models = ActiveModels(models=[])
-        self.refresh()
-
-active_models_cache = ActiveModelsCache()
-
 async def global_identifier(_request):
     return "global"
 
@@ -76,12 +41,6 @@ async def user_identifier(request):
         log.error(f"UUID not found in cookies!")
         return "global"
     return request.cookies.get("uuid")
-
-@router.get("models", dependencies=[Depends(RateLimiter(times=public_settings.CHALLENGE_REQUESTS_PER_MINUTE, minutes=1, identifier=user_identifier))])
-async def get_models() -> ActiveModels:
-    if active_models_cache.last_refresh + 60 < int(time.time()):
-        await active_models_cache.refresh()
-    return active_models_cache.active_models
 
 @router.post("/generate/{challenge_id}", dependencies=[Depends(RateLimiter(times=public_settings.GEN_REQUESTS_PER_MINUTE, minutes=1, identifier=global_identifier))])
 async def generate(challenge_id: int, request: GenerateRequest) -> GenerateResponse:

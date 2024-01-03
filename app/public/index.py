@@ -5,6 +5,9 @@ from fastapi import APIRouter, Request
 import os, json
 import jinja2
 
+from .settings import SessionLocal
+from .schema import Model
+
 pass_context = jinja2.pass_context
 
 router = APIRouter()
@@ -26,8 +29,10 @@ async def root(request: Request):
     with open(os.path.join(dir_path, "../static/manifest.json")) as f:
         assets = json.load(f)
     js_path = assets["assets/js/index.js"]["file"]
+    with SessionLocal() as session:
+        models = session.query(Model).all()
 
-    response = templates.TemplateResponse("index.html", {"request": request, "js_path": js_path})
+    response = templates.TemplateResponse("index.html", {"request": request, "js_path": js_path, "models": models})
     
     # Todo: jwt.encode() and jwt.decode() to store user info in cookie. It's just a uuid for now, but we need to make sure we made it.
     # The code for the todo is in cookie.py, but we need error handling for when the cookie is invalid.

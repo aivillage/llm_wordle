@@ -8,8 +8,10 @@ from logging import getLogger
 from fastapi import HTTPException
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 import aiohttp
+from uuid import uuid4
 
-log = getLogger(__name__)
+log = getLogger("generator")
+
 
 async def generate_text(preprompt: str, prompt: str, model: str) -> str:
     """Generate text from a prompt using the EleutherAI GPT-NeoX-20B model.
@@ -32,15 +34,16 @@ async def generate_text(preprompt: str, prompt: str, model: str) -> str:
     token = os.environ.get('LLMV_ROUTER_TOKEN')
     if token is None:
         raise ValueError('LLM Verification Router token is not set')
-    
-    log.info(f'Received text generation request for prompt "{prompt}" for model {model}')
+    # not needed for this type of deployment.
+    uuid = str(uuid4())
+    log.info(f'Received text generation request for prompt "{prompt}" for model "{model}"')
     # Load the Vanilla Neox API key from the config file.
     async with aiohttp.ClientSession() as session:
         async with session.post(url=route,
                         headers={'Authorization': f'Bearer {token}'},
-                        json={'prompt': prompt, "preprompt" : preprompt, "model": model}) as raw_response:
+                        json={"uuid": uuid, 'prompt': prompt, "preprompt" : preprompt, "model": model}) as raw_response:
     
-            if raw_response.status_code == 200:
+            if raw_response.status == 200:
                 json_response = await raw_response.json()
                 if json_response.get('error') is not None:
                     log.error(f"Error generating: {json_response['error']}")
@@ -49,14 +52,14 @@ async def generate_text(preprompt: str, prompt: str, model: str) -> str:
                     )
                 
                 return json_response['generation']
-            elif 400 <= raw_response.status_code <= 599:
+            elif 400 <= raw_response.status <= 599:
                 # ... raise an error.
-                raise HTTPException(f'LLM Router API returned error status code {raw_response.status_code}: '
-                                f'Response: {raw_response.json()}')
+                log.error(f"Error generating: {raw_response.status}")
+                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f'LLM Router API returned error status code {raw_response.status}: ')
             # ... Otherwise, if it's an unrecognized HTTP status code, then...
             else:
-                raise HTTPException(f'LLM Router API returned unrecognized status code {raw_response.status_code}: '
-                                f'Response: {raw_response.json()}')
+                log.error(f"Error generating: {raw_response.status}")
+                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f'LLM Router API returned unrecognized status code {raw_response.status}: ')
 
 
 async def get_models() -> List[str]:
@@ -72,7 +75,7 @@ async def get_models() -> List[str]:
         async with session.post(url=route,
                         headers={'Authorization': f'Bearer {token}'}) as raw_response:
     
-            if raw_response.status_code == 200:
+            if raw_response.status == 200:
                 json_response = await raw_response.json()
                 if 'error' in json_response:
                     log.error(f"Error generating: {json_response['error']}")
@@ -81,13 +84,13 @@ async def get_models() -> List[str]:
                     )
                 return json_response['models']
     
-            elif 400 <= raw_response.status_code <= 599:
+            elif 400 <= raw_response.status <= 599:
                 # ... raise an error.
-                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f'LLM Router API returned error status code {raw_response.status}: '
-                                f'Response: {raw_response.json()}')
+                log.error(f"Error generating: {raw_response.status}")
+                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f'LLM Router API returned error status code {raw_response.status}: ')
             # ... Otherwise, if it's an unrecognized HTTP status code, then...
             else:
-                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f'LLM Router API returned unrecognized status code {raw_response.status}: '
-                                f'Response: {raw_response.json()}')
+                log.error(f"Error generating: {raw_response.status}")
+                raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f'LLM Router API returned unrecognized status code {raw_response.status}: ')
     
     

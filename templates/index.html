@@ -18,9 +18,7 @@
         </h1>
 
         <div class="text-white text-base font-bold leading-[25px] mt-10 p-4 md:p-0">Here are some challenges designed to
-            test
-            prompts that LLMs have difficulty with. These are warmups for the main event over in the AI Village at
-            DEFCON 31. Write a prompt that causes the LLM to respond in a way that successfully satisfies the challenge.
+            test prompts that LLMs have difficulty with. Write a prompt that causes the LLM to respond in a way that successfully satisfies the challenge.
         </div>
 
         <div class="bg-[#525252] p-8 mt-10">
@@ -49,7 +47,6 @@
                 </div>
             </div>
 
-
             <div x-show="challenge_loaded">
                 <div class="mb-[40px]">
                     <label for="comment" class="block text-sm font-medium leading-6 text-white">Prompt</label>
@@ -58,10 +55,12 @@
                                   class="block w-full min-h-[128px] border-0 py-1.5 my-[24px] text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-700 sm:text-sm sm:leading-6"></textarea>
                     </div>
                     <div class="mt-6 flex items-center justify-start gap-x-6">
-                        <button @click.throttle.750ms="generate()" type="button"
-                                class="inline-flex items-center text-sm font-bold leading-6 text-black bg-[#06F568] hover:bg-green-600 uppercase px-[32px] py-[16px]">
-                            Generate
-                        </button>
+                        {% for model in models %}
+                            <button @click.throttle.750ms="generate('{{model.name}}')" type="button"
+                                    class="inline-flex items-center text-sm font-bold leading-6 text-black bg-[#06F568] hover:bg-green-600 uppercase px-[32px] py-[16px]">
+                                Generate {{model.name}}
+                            </button>
+                        {% endfor %}
                     </div>
                 </div>
 

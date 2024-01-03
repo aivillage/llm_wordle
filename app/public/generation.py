@@ -95,12 +95,22 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
         # Check that the model is active
         model = session.query(Model).filter(Model.name == request.model).first()
         if model is not None and not model.active:
+            log.error(f"Model {model.name} is not active!")
             return GenerateResponse(error="Model not active!")
  
         challenge = session.query(Challenge).filter(Challenge.id == challenge_id).first()
         if challenge is None:
+            log.error(f"Challenge {challenge_id} not found!")
             return GenerateResponse(error="Challenge not found!")
+        
         generation = await generate_text(challenge.preprompt, request.prompt, request.model)
+        log.info(f"Generated: {generation}")
+        generation = Generation(
+            challenge_id=challenge_id,
+            model_id=model.id,
+            prompt=request.prompt,
+            generation=generation,
+        )
         session.add(generation)
         session.commit()
         return GenerateResponse(generation=generation.generation, id=generation.id)

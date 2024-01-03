@@ -23,7 +23,7 @@ def load_models(path):
             model = Model(
                 name=model["name"],
                 description=model["description"],
-                active=False,
+                active=True,
             )
             session.add(model)
         session.commit()
@@ -56,9 +56,9 @@ def make_admin_app():
         raise ValueError('The config file is not set')
     if os.path.exists(os.path.join(config_folder,"models.json")):
         log.info(f"Loading models from conf/models.json")
-        load_models(os.path.join(config_folder,"conf/models.json"))
+        load_models(os.path.join(config_folder,"models.json"))
     else:
-        log.info(f"Models file not found at conf/models.json")
+        log.info(f"Models file not found at {os.path.join(config_folder,'models.json')}")
 
     if os.path.exists(os.path.join(config_folder,"challenges.json")):
         log.info(f"Loading challenges from conf/challenges.json")

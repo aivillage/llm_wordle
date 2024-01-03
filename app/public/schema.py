@@ -24,9 +24,11 @@ class Generation(Base):
     __tablename__ = "generation"
     id: Mapped[int] = mapped_column(primary_key=True)
     challenge_id: Mapped[int] = mapped_column(ForeignKey("challenge.id"))
+    model_id: Mapped[int] = mapped_column(ForeignKey("model.id"))
     prompt: Mapped[str] = mapped_column(Text)
     generation: Mapped[str] = mapped_column(Text)
     challenge: Mapped["Challenge"] = relationship()
+    model: Mapped["Model"] = relationship()
     submitted: Mapped[bool] = mapped_column(default=False)
     reason: Mapped[Optional[str]] = mapped_column(Text)
     reported: Mapped[bool] = mapped_column(default=False)

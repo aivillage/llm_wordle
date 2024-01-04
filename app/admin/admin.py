@@ -13,20 +13,8 @@ log = logging.getLogger("admin")
 
 router = APIRouter()
 
-def get_models(session: SessionLocal):
-    query = select(Model.id, Model.name, url=Model.url, parameters=Model.parameters, prompt_format=Model.prompt_format)
-    models = session.execute(query).all()
-    final_models = []
-    for model in models:
-        final_models.append({
-            "id": model[0],
-            "name": model[1],
-        })
-    return final_models
-
 def get_challenges(session: SessionLocal, challenge_id: Optional[int] = None):
-    model_name_alias = aliased(Model, name="model_name")
-    query = select(Challenge.id, Challenge.name, Challenge.description, Challenge.preprompt, Challenge.enabled).add_columns(model_name_alias.name).join(model_name_alias)
+    query = select(Challenge.id, Challenge.name, Challenge.description, Challenge.preprompt, Challenge.enabled)
     if challenge_id is not None:
         query = query.where(Challenge.id == challenge_id)
     challenges = session.execute(query).all()
@@ -41,7 +29,6 @@ def get_challenges(session: SessionLocal, challenge_id: Optional[int] = None):
             "description": challenge[2],
             "preprompt": challenge[3],
             "enabled": challenge[4],
-            "model": challenge[5],
             "num_generations": num_generations,
             "num_submissions": num_submissions,
         }
@@ -158,5 +145,14 @@ async def toggle_challenge(challenge_id: int):
 @router.get("/models/")
 async def view_models(request: Request):
     with SessionLocal() as session:
-        models = get_models(session)
+        models = session.query(Model).all()
     return templates.TemplateResponse("models.html", {"request": request, "models": models})
+
+
+@router.get("/toggle_model/{model_id}")
+async def toggle_model(model_id: int):
+    with SessionLocal() as session:
+        model = session.query(Model).filter(Model.id == model_id).first()
+        model.active = not model.active
+        session.commit()
+    return RedirectResponse(f"/admin/models/", status.HTTP_302_FOUND)

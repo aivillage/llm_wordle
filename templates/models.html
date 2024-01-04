@@ -16,10 +16,8 @@
             <thead>
               <tr>
                 <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 w-40">Model Name</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Url</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Parameters</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Prompt Format</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Delete?</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Description</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 break-normal">Active</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -27,10 +25,12 @@
               <tr>
                 <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ model.name }}</td>
                 <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ model.url }}</td>
-                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ model.parameters }}</td>
-                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ model.prompt_format }}</td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 break-normal">
-                    <a href="{{ https_url_for('delete_model', model_id = model.id) }}?submitted=True" class="text-indigo-600 hover:text-indigo-900">Delete</a>
+                  {% if model.active %}
+                    <a href="{{ https_url_for('toggle_model', model_id = model.id) }}?submitted=True" class="text-indigo-600 hover:text-indigo-900">Active</a>
+                  {% else %}
+                    <a href="{{ https_url_for('toggle_model', model_id = model.id) }}?submitted=True" class="text-indigo-600 hover:text-indigo-900">Inactive</a>
+                  {% endif %}
                 </td>
               {% endfor %}
               <!-- More people... -->

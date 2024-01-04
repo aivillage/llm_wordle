@@ -11,18 +11,38 @@ services:
       - "8001:8000"
     volumes:
       - ../.data/llm_wordle/logs:/var/log/llm_wordle
-      - ../.data/llm_wordle/uploads:/var/uploads
       - ../:/opt/llm_wordle:ro
     depends_on:
       db:
         condition: service_healthy
       cache:
         condition: service_healthy
+      llm_router:
+        condition: service_healthy
     networks:
         default:
         internal:
     env_file:
       - ../.env_dev
+
+  llm_router:
+    image: aivillage/llm_router:dev
+    user: root
+    restart: always
+    volumes:
+      - ../mock.json:/opt/models/chat/mock.json
+    environment:
+      - REDIS_URL=redis://cache:6379
+    depends_on:
+      - cache
+    networks:
+        internal:
+    healthcheck:
+      test: ["CMD", "curl","-f","http://localhost:8000/health"]
+      start_period: 1s
+      interval: 5s
+      timeout: 5s
+      retries: 55
 
   db:
     image: mariadb:10.4.12

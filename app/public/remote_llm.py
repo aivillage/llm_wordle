@@ -45,13 +45,15 @@ async def generate_text(preprompt: str, prompt: str, model: str) -> str:
     
             if raw_response.status == 200:
                 json_response = await raw_response.json()
+                log.info(json_response)
+
                 if json_response.get('error') is not None:
                     log.error(f"Error generating: {json_response['error']}")
                     raise HTTPException(
                         HTTP_500_INTERNAL_SERVER_ERROR, "Model Error"
                     )
-                
                 return json_response['generation']
+
             elif 400 <= raw_response.status <= 599:
                 # ... raise an error.
                 log.error(f"Error generating: {raw_response.status}")

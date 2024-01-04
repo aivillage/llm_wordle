@@ -51,6 +51,7 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
         if generation:
             log.info("Duplicate generation found")
             return GenerateResponse(error="Duplicate prompt found, try something else.")
+
         # Check that the model is active
         model = session.query(Model).filter(Model.name == request.model).first()
         if model is not None and not model.active:

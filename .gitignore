@@ -5,7 +5,6 @@ public_settings.json
 admin_settings.json
 app/static
 .data
-.env_dev
 Caddyfile.admin
 Caddyfile
 Caddyfile.public

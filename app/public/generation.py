@@ -51,16 +51,18 @@ async def generate(challenge_id: int, request: GenerateRequest, uuid: Annotated[
 
     log.info(f"Generating with prompt.")
     with SessionLocal() as session:
-        # Check this isn't a duplicate
-        generation = session.query(Generation).filter(Generation.challenge_id == challenge_id).filter(Generation.prompt == request.prompt).first()
-        if generation:
-            log.info("Duplicate generation found")
-            return GenerateResponse(error="Duplicate prompt found, try something else.")
         # Check that the model is active
         model = session.query(Model).filter(Model.name == request.model).first()
         if model is not None and not model.active:
             log.error(f"Model {model.name} is not active!")
             return GenerateResponse(error="Model not active!")
+
+        # Check this isn't a duplicate
+        generation = session.query(Generation).filter(Generation.challenge_id == challenge_id).filter(Generation.prompt == request.prompt, Generation.model_id == model.id, Generation.usr_uuid == uuid).first()
+        if generation:
+            log.info("Duplicate generation found")
+            return GenerateResponse(error="Duplicate prompt found, try something else.")
+        
  
         challenge = session.query(Challenge).filter(Challenge.id == challenge_id).first()
         if challenge is None:

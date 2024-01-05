@@ -45,9 +45,17 @@ async def user_identifier(request):
 @router.post("/generate/{challenge_id}", dependencies=[Depends(RateLimiter(times=public_settings.GEN_REQUESTS_PER_MINUTE, minutes=1, identifier=global_identifier))])
 async def generate(challenge_id: int, request: GenerateRequest) -> GenerateResponse:
     log.info(f"Generating with prompt.")
+    log.debug(challenge_id, request)
     with SessionLocal() as session:
-        # Check this isn't a duplicate
-        generation = session.query(Generation).filter(Generation.challenge_id == challenge_id).filter(Generation.prompt == request.prompt).first()
+
+        # Check this isn't a duplicate across challenge, prompt, and model
+        generation = (session.query(Generation)
+                     .filter(Generation.challenge_id == challenge_id)
+                     .filter(Generation.prompt == request.prompt)
+                     .filter(Generation.model == request.model)
+                     .first()
+                    )
+
         if generation:
             log.info("Duplicate generation found")
             return GenerateResponse(error="Duplicate prompt found, try something else.")
@@ -112,14 +120,17 @@ async def submit(request: SubmitRequest) -> SubmitResponse:
         generation = session.query(Generation).filter(Generation.id == request.generation_id).first()
         if generation is None:
             return SubmitResponse(message="Generation not found!", accepted=False)
+
         if generation.submitted:
             return SubmitResponse(message="Already submitted!", accepted=False)
+
         if request.is_report:
             generation.reported = True
             response_msg = "Thanks for reporting!"
         else:
             generation.submitted = True
             response_msg = "Thanks for submitting!"
+
         generation.reason = request.reason
         session.commit()
     return SubmitResponse(message=response_msg)
@@ -127,11 +138,14 @@ async def submit(request: SubmitRequest) -> SubmitResponse:
 @router.post("/report/", dependencies=[Depends(RateLimiter(times=public_settings.SUBMISSIONS_PER_MINUTE, minutes=1, identifier=user_identifier))])
 async def submit(request: SubmitRequest) -> SubmitResponse:
     log.info(f"Reporting generation {request.generation_id}")
+
     with SessionLocal() as session:
         generation = session.query(Generation).filter(Generation.id == request.generation_id).first()
+
         if generation is None:
             return SubmitResponse(message="Generation not found!", accepted=False)
         generation.reported = True
         generation.reason = request.reason
         session.commit()
+
     return SubmitResponse(message="Thanks for reporting!")

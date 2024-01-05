@@ -1,3 +1,4 @@
+import logging
 from logging import getLogger
 import time
 from typing import List, Optional
@@ -12,6 +13,7 @@ from .settings import SessionLocal, public_settings
 from .remote_llm import generate_text
 router = APIRouter()
 log = getLogger("generator")
+log.setLevel(logging.DEBUG)
 
 
 class GenerateRequest(BaseModel):
@@ -46,13 +48,14 @@ async def user_identifier(request):
 async def generate(challenge_id: int, request: GenerateRequest) -> GenerateResponse:
     log.info(f"Generating with prompt.")
     log.debug(challenge_id, request)
-    with SessionLocal() as session:
+    log.debug(request.model)
 
+    with SessionLocal() as session:
         # Check this isn't a duplicate across challenge, prompt, and model
         generation = (session.query(Generation)
                      .filter(Generation.challenge_id == challenge_id)
                      .filter(Generation.prompt == request.prompt)
-                     .filter(Generation.model == request.model)
+                     .filter(Generation.model.has(Model.name == request.model))
                      .first()
                     )
 

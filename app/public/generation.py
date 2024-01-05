@@ -42,15 +42,24 @@ async def user_identifier(request):
     if request.cookies.get("uuid") is None:
         log.error(f"UUID not found in cookies!")
         return "global"
-    return request.cookies.get("uuid")
+    uuid = request.cookies.get("uuid")
+    log.debug("User UUID % s", uuid)
+
+    # This line is meant to prove a point and should be deleted
+    raise Exception("Apparently this function is never called. TRY IT")
+    return uuid
 
 @router.post("/generate/{challenge_id}", dependencies=[Depends(RateLimiter(times=public_settings.GEN_REQUESTS_PER_MINUTE, minutes=1, identifier=global_identifier))])
 async def generate(challenge_id: int, request: GenerateRequest) -> GenerateResponse:
     log.info(f"Generating with prompt.")
-    log.debug(challenge_id, request)
-    log.debug(request.model)
+    # log.debug(challenge_id, request)
+    # log.debug(request.model)
 
     with SessionLocal() as session:
+
+        # user_uuid = user_identifier(request)
+        # log.debug(user_uuid)
+
         # Check this isn't a duplicate across challenge, prompt, and model
         generation = (session.query(Generation)
                      .filter(Generation.challenge_id == challenge_id)
@@ -78,6 +87,9 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
         log.info(f"Generated: {generation}")
         generation = Generation(
             challenge_id=challenge_id,
+
+            # THIS Needs to be changed to actual UUID
+            user_uuid="test",
             model_id=model.id,
             prompt=request.prompt,
             generation=generation,

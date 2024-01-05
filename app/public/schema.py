@@ -23,6 +23,9 @@ class Base(DeclarativeBase):
 class Generation(Base):
     __tablename__ = "generation"
     id: Mapped[int] = mapped_column(primary_key=True)
+
+    # User UUID generated from frontend
+    user_uuid: Mapped[str] = mapped_column(String(200))
     challenge_id: Mapped[int] = mapped_column(ForeignKey("challenge.id"))
     model_id: Mapped[int] = mapped_column(ForeignKey("model.id"))
     prompt: Mapped[str] = mapped_column(Text)
@@ -59,7 +62,7 @@ class Model(Base):
     def __repr__(self) -> str:
         return f"Model(id={self.id!r}, name={self.name!r}), url={self.url!r}, description={self.description!r}, active={self.active!r})"
 
-
+# This is for admin users
 class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)

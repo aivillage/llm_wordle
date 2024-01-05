@@ -54,13 +54,22 @@
                         <textarea x-model="input" @keyup.enter="generate()" name="comment" id="comment"
                                   class="block w-full min-h-[128px] border-0 py-1.5 my-[24px] text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-700 sm:text-sm sm:leading-6"></textarea>
                     </div>
-                    <div class="mt-6 flex items-center justify-start gap-x-6">
-                        {% for model in models %}
-                            <button @click.throttle.750ms="generate('{{model.name}}')" type="button"
-                                    class="inline-flex items-center text-sm font-bold leading-6 text-black bg-[#06F568] hover:bg-green-600 uppercase px-[32px] py-[16px]">
-                                Generate {{model.name}}
-                            </button>
-                        {% endfor %}
+                    <div x-data="{ model_description: '' }" class="mt-6 flex items-center gap-x-6">
+                        <div class="mt-6 flex items-center justify-start gap-x-6">
+                            {% for model in models %}
+                                <div>
+                                    <button @click.throttle.750ms="generate('{{model.name}}')" type="button"
+                                            class="inline-flex items-center text-sm font-bold leading-6 text-black bg-[#06F568] hover:bg-green-600 uppercase px-[32px] py-[16px]">
+                                        Generate {{model.name}}
+                                    </button>
+                                    <button @click="model_description = '{{model.description}}'" type="button"
+                                            class="inline-flex items-center text-sm font-bold leading-6 text-black bg-[#06F568] hover:bg-green-600 uppercase px-[32px] py-[16px]">
+                                        About {{model.name}}
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div x-text="model_description" x-show="model_description" class="bg-black text-white p-4"></div>
                     </div>
                 </div>
 

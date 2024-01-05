@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import os
 from typing import Optional
+from mistune import html
+
 from sqlalchemy import MetaData
 from sqlalchemy import JSON, ForeignKey, String, Text, text
 from sqlalchemy.orm import DeclarativeBase
@@ -8,7 +10,6 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.engine.url import URL
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from logging import getLogger
@@ -67,6 +68,16 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(200))
     disabled: Mapped[bool]
 
+
+class Post(Base):
+    __tablename__ = "post"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    author: Mapped[str] = mapped_column(String(200))
+    title: Mapped[str] = mapped_column(String(200))
+    content: Mapped[str] = mapped_column(Text)
+
+    def render(self) -> str:
+        content = html(self.content)
 
 def empty_str_cast(value, default=None):
     if value == "":

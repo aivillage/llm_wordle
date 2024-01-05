@@ -42,3 +42,14 @@ async def root(request: Request):
         response.set_cookie("uuid", uuid)
 
     return response
+
+@router.get("/post/{post_id}")
+async def post(request: Request, post_id: int):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(dir_path, "../static/manifest.json")) as f:
+        assets = json.load(f)
+    js_path = assets["assets/js/post.js"]["file"]
+    with SessionLocal() as session:
+        models = session.query(Model).all()
+
+    response = templates.TemplateResponse("post.html", {"request": request, "js_path": js_path, "models": models})

@@ -1,15 +1,16 @@
 from logging import getLogger
-import time
-from typing import List, Optional
+from typing import List, Optional, Annotated
 import random
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Cookie
+from jose import JWTError
 from pydantic import BaseModel
 from fastapi_limiter.depends import RateLimiter
 
 from .schema import Challenge, Generation, Model
 from .settings import SessionLocal, public_settings
 from .remote_llm import generate_text
+from .cookie import get_user_from_cookie
 router = APIRouter()
 log = getLogger("generator")
 
@@ -43,7 +44,12 @@ async def user_identifier(request):
     return request.cookies.get("uuid")
 
 @router.post("/generate/{challenge_id}", dependencies=[Depends(RateLimiter(times=public_settings.GEN_REQUESTS_PER_MINUTE, minutes=1, identifier=global_identifier))])
-async def generate(challenge_id: int, request: GenerateRequest) -> GenerateResponse:
+async def generate(challenge_id: int, request: GenerateRequest, user_uuid_id: Annotated[str | None, Cookie()] = None) -> GenerateResponse:
+    try:
+        uuid = get_user_from_cookie(user_uuid_id)
+    except JWTError:
+        return GenerateResponse(error="Use the normal index!")
+
     log.info(f"Generating with prompt.")
     with SessionLocal() as session:
         # Check this isn't a duplicate
@@ -69,6 +75,7 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
             model_id=model.id,
             prompt=request.prompt,
             generation=generation,
+            usr_uuid=uuid,
         )
         session.add(generation)
         session.commit()

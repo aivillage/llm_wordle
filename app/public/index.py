@@ -7,6 +7,7 @@ import jinja2
 
 from .settings import SessionLocal
 from .schema import Model
+from .cookie import create_user_cookie
 
 pass_context = jinja2.pass_context
 
@@ -38,7 +39,7 @@ async def root(request: Request):
     # The code for the todo is in cookie.py, but we need error handling for when the cookie is invalid.
     uuid = request.cookies.get("uuid")
     if uuid is None:
-        uuid = str(uuid4())
+        uuid = create_user_cookie()
         response.set_cookie("uuid", uuid)
 
     return response

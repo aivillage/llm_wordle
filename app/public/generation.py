@@ -44,10 +44,9 @@ async def user_identifier(request):
     return request.cookies.get("uuid")
 
 @router.post("/generate/{challenge_id}", dependencies=[Depends(RateLimiter(times=public_settings.GEN_REQUESTS_PER_MINUTE, minutes=1, identifier=global_identifier))])
-async def generate(challenge_id: int, request: GenerateRequest, user_uuid_id: Annotated[str | None, Cookie()] = None) -> GenerateResponse:
-    try:
-        uuid = get_user_from_cookie(user_uuid_id)
-    except JWTError:
+async def generate(challenge_id: int, request: GenerateRequest, uuid: Annotated[str | None, Cookie()] = None) -> GenerateResponse:
+    uuid = get_user_from_cookie(uuid)
+    if uuid is None:
         return GenerateResponse(error="Use the normal index!")
 
     log.info(f"Generating with prompt.")

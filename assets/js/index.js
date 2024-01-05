@@ -65,7 +65,7 @@ Alpine.data('llm_challenge', () => ({
 
     async clear() {
         this.input = "";
-        this.output = "Generated Text";
+        this.output = "";
         this.generation_text = "";
         this.reason = "";
         this.generation_id = -1;

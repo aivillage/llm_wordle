@@ -58,10 +58,23 @@ async def generate(challenge_id: int, request: GenerateRequest, uuid: Annotated[
             return GenerateResponse(error="Model not active!")
 
         # Check this isn't a duplicate
-        generation = session.query(Generation).filter(Generation.challenge_id == challenge_id).filter(Generation.prompt == request.prompt, Generation.model_id == model.id, Generation.usr_uuid == uuid).first()
+        generation = session.query(Generation).filter(Generation.challenge_id == challenge_id).filter(Generation.prompt == request.prompt, Generation.model_id == model.id).first()
         if generation:
-            log.info("Duplicate generation found")
-            return GenerateResponse(error="Duplicate prompt found, try something else.")
+            if Generation.usr_uuid == uuid:
+                log.info("Duplicate generation found for the same model. We're caching the generations, so it's going to be the same result.")
+                return GenerateResponse(generation=generation.generation, id=generation.id)
+            else:
+                # A different user has already generated this prompt for this model, so we can reuse the generation.
+                new_generation = Generation(
+                    challenge_id=challenge_id,
+                    model_id=model.id,
+                    prompt=request.prompt,
+                    generation=generation.generation,
+                    usr_uuid=uuid,
+                )
+                session.add(new_generation)
+                session.commit()
+                return GenerateResponse(generation=new_generation.generation, id=new_generation.id)
         
  
         challenge = session.query(Challenge).filter(Challenge.id == challenge_id).first()

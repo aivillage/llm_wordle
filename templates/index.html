@@ -55,19 +55,29 @@
                                   class="block w-full min-h-[128px] border-0 py-1.5 my-[24px] text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-700 sm:text-sm sm:leading-6"></textarea>
                     </div>
                     <div x-data="{ model_description: '' }" class="mt-6 gap-x-6">
-                        <div class="mt-6 flex items-center justify-start gap-x-6">
-                            {% for model in models %}
-                                <div>
-                                    <button @click.throttle.750ms="generate('{{model.name}}')" type="button"
-                                            class="inline-flex items-center text-sm font-bold leading-6 text-black bg-[#06F568] hover:bg-green-600 uppercase px-[32px] py-[16px]">
-                                        Generate {{model.name}}
-                                    </button>
-                                    <button @click="model_description = '{{model.description}}'" type="button"
-                                            class="inline-flex items-center text-sm font-bold leading-6 text-black bg-[#06F568] hover:bg-green-600 uppercase px-[32px] py-[16px]">
-                                        About {{model.name}}
-                                    </button>
+                        <div class="mt-6 items-center justify-start gap-x-6 table">
+                            <div class="table-row-group">
+                                <div class="table-row">
+                                    {% for model in models %}
+                                    <div class="table-cell items-center border-1">
+                                        <button @click.throttle.750ms="generate('{{model.name}}')" type="button"
+                                                class="text-sm font-bold leading-6 text-black bg-[#06F568] hover:bg-green-600 uppercase px-[32px] py-[16px]">
+                                            Generate {{model.name}}
+                                        </button>
+                                    </div>
+                                    {% endfor %}
                                 </div>
-                            {% endfor %}
+                                <div class="table-row">
+                                    {% for model in models %}
+                                    <div class="table-cell items-center">
+                                        <button @click="model_description = '{{model.description}}'" type="button"
+                                                class="text-sm font-bold leading-6 text-black bg-[#1a964c] hover:bg-green-600 uppercase px-[32px] py-[12px]">
+                                            About {{model.name}}
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
                         <div x-show="model_description">
                             <div x-text="model_description" class="mt-8 mb-8 bg-black text-white p-4"></div>

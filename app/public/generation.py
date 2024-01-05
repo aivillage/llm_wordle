@@ -57,6 +57,7 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
 
     with SessionLocal() as session:
 
+        # TODO: Need to get user_uuid so we can filter here
         # user_uuid = user_identifier(request)
         # log.debug(user_uuid)
 
@@ -64,6 +65,8 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
         generation = (session.query(Generation)
                      .filter(Generation.challenge_id == challenge_id)
                      .filter(Generation.prompt == request.prompt)
+                     # TODO: Enable this one UUID is working
+                    #  .filter(Generation.user_uuid == user_uuid)
                      .filter(Generation.model.has(Model.name == request.model))
                      .first()
                     )

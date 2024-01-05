@@ -62,7 +62,7 @@ async def generate(challenge_id: int, request: GenerateRequest, uuid: Annotated[
         if generation:
             if Generation.usr_uuid == uuid:
                 log.info("Duplicate generation found for the same model. We're caching the generations, so it's going to be the same result.")
-                return GenerateResponse(generation=generation.generation, id=generation.id)
+                return GenerateResponse(generation=generation.generation, id=generation.id, error="Duplicate generation found for the same model. We're caching the generations, so it's going to be the same result.")
             else:
                 # A different user has already generated this prompt for this model, so we can reuse the generation.
                 new_generation = Generation(

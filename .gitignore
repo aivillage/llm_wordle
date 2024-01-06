@@ -8,6 +8,8 @@ app/static
 Caddyfile.admin
 Caddyfile
 Caddyfile.public
+.DS_Store
+
 
 # Logs
 logs

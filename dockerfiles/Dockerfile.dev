@@ -40,6 +40,7 @@ RUN useradd \
     
 
 COPY --chown=1001:1001 --from=build /opt/venv /opt/venv
+COPY --chown=1001:1001 --from=build /opt/llm_wordle/logging.yml /opt/llm_wordle/logging.yml
 ENV PATH="/opt/venv/bin:$PATH"
 
 USER 1001

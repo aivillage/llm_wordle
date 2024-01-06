@@ -49,6 +49,11 @@ Alpine.data('llm_challenge', () => ({
             this.error = "Something went wrong. Please try again later.";
         };
         const data = await response.json();
+        if (data.error) {
+            this.error = data.error;
+            return;
+        }
+
         this.challenge_id = data.id;
         this.name = data.name;
         this.description = data.description;
@@ -102,6 +107,10 @@ Alpine.data('llm_challenge', () => ({
             this.error = "Something went wrong. Please try again later.";
         };
         const data = await response.json();
+        if (data.error) {
+            this.error = data.error;
+            return;
+        }
         this.generation_text = "";
         this.output = data.generation;
         this.generation_id = data.id;
@@ -163,6 +172,11 @@ Alpine.data('llm_challenge', () => ({
         };
 
         const data = await response.json();
+        if (data.error) {
+            this.error = data.error;
+            return;
+        }
+
         this.submission_text = data.message;
         await this.close_submission();
         if (new_challenge) {

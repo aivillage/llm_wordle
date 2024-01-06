@@ -25,6 +25,7 @@ class Generation(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     challenge_id: Mapped[int] = mapped_column(ForeignKey("challenge.id"))
     model_id: Mapped[int] = mapped_column(ForeignKey("model.id"))
+    usr_uuid: Mapped[str] = mapped_column(String(200))
     prompt: Mapped[str] = mapped_column(Text)
     generation: Mapped[str] = mapped_column(Text)
     challenge: Mapped["Challenge"] = relationship()

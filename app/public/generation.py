@@ -1,15 +1,16 @@
 from logging import getLogger
-import time
-from typing import List, Optional
+from typing import List, Optional, Annotated
 import random
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Cookie
+from jose import JWTError
 from pydantic import BaseModel
 from fastapi_limiter.depends import RateLimiter
 
 from .schema import Challenge, Generation, Model
 from .settings import SessionLocal, public_settings
 from .remote_llm import generate_text
+from .cookie import get_user_from_cookie
 router = APIRouter()
 log = getLogger("generator")
 
@@ -43,19 +44,40 @@ async def user_identifier(request):
     return request.cookies.get("uuid")
 
 @router.post("/generate/{challenge_id}", dependencies=[Depends(RateLimiter(times=public_settings.GEN_REQUESTS_PER_MINUTE, minutes=1, identifier=global_identifier))])
-async def generate(challenge_id: int, request: GenerateRequest) -> GenerateResponse:
+async def generate(challenge_id: int, request: GenerateRequest, uuid: Annotated[str | None, Cookie()] = None) -> GenerateResponse:
+    uuid = get_user_from_cookie(uuid)
+    if uuid is None:
+        return GenerateResponse(error="Use the normal index!")
+
     log.info(f"Generating with prompt.")
     with SessionLocal() as session:
-        # Check this isn't a duplicate
-        generation = session.query(Generation).filter(Generation.challenge_id == challenge_id).filter(Generation.prompt == request.prompt).first()
-        if generation:
-            log.info("Duplicate generation found")
-            return GenerateResponse(error="Duplicate prompt found, try something else.")
         # Check that the model is active
         model = session.query(Model).filter(Model.name == request.model).first()
         if model is not None and not model.active:
             log.error(f"Model {model.name} is not active!")
             return GenerateResponse(error="Model not active!")
+
+        # Check this isn't a duplicate
+        generations = session.query(Generation).filter(Generation.challenge_id == challenge_id).filter(Generation.prompt == request.prompt, Generation.model_id == model.id).all()
+        existing_uuids = [g.usr_uuid for g in generations]
+        if uuid in existing_uuids:
+            log.info("Duplicate generation found for the same model for this user.  Returning cached response.")
+            generation = generations[existing_uuids.index(uuid)]
+            return GenerateResponse(generation=generation.generation, id=generation.id, error="Duplicate generation found for the same model. We're caching the generations, so it's going to be the same result.")
+        if 0 < len(existing_uuids):
+            # A different user has already generated this prompt for this model, so we can reuse the generation.
+            new_generation = Generation(
+                challenge_id=challenge_id,
+                model_id=model.id,
+                prompt=request.prompt,
+                generation=generations[0].generation,
+                usr_uuid=uuid,
+            )
+            session.add(new_generation)
+            session.commit()
+            return GenerateResponse(generation=new_generation.generation, id=new_generation.id)
+    
+        
  
         challenge = session.query(Challenge).filter(Challenge.id == challenge_id).first()
         if challenge is None:
@@ -69,6 +91,7 @@ async def generate(challenge_id: int, request: GenerateRequest) -> GenerateRespo
             model_id=model.id,
             prompt=request.prompt,
             generation=generation,
+            usr_uuid=uuid,
         )
         session.add(generation)
         session.commit()

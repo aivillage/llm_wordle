@@ -90,13 +90,21 @@ class DatabaseSettings():
         self.DATABASE_PORT = os.getenv("DATABASE_PORT")
         self.DATABASE_NAME = os.getenv("DATABASE_NAME")
         self.DATABASE_USER = os.getenv("DATABASE_USER")
+        self.DATABASE_NAME = os.getenv("DATABASE_NAME")
+        self.DATABASE_SOCKET = os.getenv("DATABASE_UNIX_SOCKET")
         self.DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
         self.DATABASE_PROTOCOL = os.getenv("DATABASE_PROTOCOL")
 
 
 def connect_db(config: DatabaseSettings, admin: bool = False):
-    if os.getenv("DATABASE_URL"):
-        DATABASE_URL = os.getenv("DATABASE_URL")
+    if self.DATABASE_SOCKET is not None:
+        DATABASE_URL = create(
+            drivername=empty_str_cast(config.DATABASE_PROTOCOL),
+            username=empty_str_cast(config.DATABASE_USER),
+            password=empty_str_cast(config.DATABASE_PASSWORD),
+            database=empty_str_cast(self.DATABASE_NAME),
+            query={"unix_sock": f"{self.DATABASE_SOCKET}/.s.PGSQL.5432"},
+        ),
     else:
         DATABASE_URL = URL.create(
             empty_str_cast(config.DATABASE_PROTOCOL),

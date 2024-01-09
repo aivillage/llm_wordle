@@ -103,6 +103,7 @@ def connect_db(config: DatabaseSettings, admin: bool = False):
         port=empty_str_cast(config.DATABASE_PORT),
         database=empty_str_cast(config.DATABASE_NAME),
     )
+    log.info(f"Connecting to database {DATABASE_URL}")
     engine = create_engine(DATABASE_URL, pool_recycle=3600)
     conn = engine.connect()
     conn.execute(text("CREATE DATABASE IF NOT EXISTS llm_wordle;"))

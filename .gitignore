@@ -9,6 +9,7 @@ Caddyfile.admin
 Caddyfile
 Caddyfile.public
 .DS_Store
+llm-wordle.yaml
 
 # Logs
 logs

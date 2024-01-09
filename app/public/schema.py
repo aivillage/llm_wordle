@@ -75,6 +75,7 @@ def empty_str_cast(value, default=None):
     return value
 
 
+
 @dataclass
 class DatabaseSettings():
     DATABASE_HOST: str 

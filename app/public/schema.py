@@ -102,8 +102,8 @@ def connect_db(config: DatabaseSettings, admin: bool = False):
             drivername=empty_str_cast(config.DATABASE_PROTOCOL),
             username=empty_str_cast(config.DATABASE_USER),
             password=empty_str_cast(config.DATABASE_PASSWORD),
-            database=empty_str_cast(self.DATABASE_NAME),
-            query={"unix_sock": f"{self.DATABASE_SOCKET}/.s.PGSQL.5432"},
+            database=empty_str_cast(config.DATABASE_NAME),
+            query={"unix_sock": f"{config.DATABASE_SOCKET}/.s.PGSQL.5432"},
         ),
     else:
         DATABASE_URL = URL.create(

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.engine.url import URL
-
+import pg8000
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from logging import getLogger
@@ -118,7 +118,7 @@ def connect_db(config: DatabaseSettings, admin: bool = False):
             database=empty_str_cast(config.DATABASE_NAME),
         )
     log.info(f"Connecting to database {DATABASE_URL}")
-    engine = create_engine(DATABASE_URL, pool_recycle=3600)
+    engine = create_engine(DATABASE_URL, client_encoding='utf8', paramstyle="named", pool_recycle=3600)
     conn = engine.connect()
     conn.execute(text("CREATE DATABASE IF NOT EXISTS llm_wordle;"))
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

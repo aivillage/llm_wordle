@@ -97,7 +97,7 @@ class DatabaseSettings():
 
 
 def connect_db(config: DatabaseSettings, admin: bool = False):
-    if self.DATABASE_SOCKET is not None:
+    if config.DATABASE_SOCKET is not None:
         DATABASE_URL = create(
             drivername=empty_str_cast(config.DATABASE_PROTOCOL),
             username=empty_str_cast(config.DATABASE_USER),
@@ -106,7 +106,7 @@ def connect_db(config: DatabaseSettings, admin: bool = False):
             query={"unix_sock": f"{config.DATABASE_SOCKET}/.s.PGSQL.5432"},
         ),
     else:
-        DATABASE_URL = URL.create(
+        DATABASE_URL = URL.create(ç
             empty_str_cast(config.DATABASE_PROTOCOL),
             username=empty_str_cast(config.DATABASE_USER),
             password=empty_str_cast(config.DATABASE_PASSWORD),

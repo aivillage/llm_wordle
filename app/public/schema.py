@@ -95,14 +95,17 @@ class DatabaseSettings():
 
 
 def connect_db(config: DatabaseSettings, admin: bool = False):
-    DATABASE_URL = URL.create(
-        empty_str_cast(config.DATABASE_PROTOCOL),
-        username=empty_str_cast(config.DATABASE_USER),
-        password=empty_str_cast(config.DATABASE_PASSWORD),
-        host=empty_str_cast(config.DATABASE_HOST),
-        port=empty_str_cast(config.DATABASE_PORT),
-        database=empty_str_cast(config.DATABASE_NAME),
-    )
+    if os.getenv("DATABASE_URL"):
+        DATABASE_URL = os.getenv("DATABASE_URL")
+    else:
+        DATABASE_URL = URL.create(
+            empty_str_cast(config.DATABASE_PROTOCOL),
+            username=empty_str_cast(config.DATABASE_USER),
+            password=empty_str_cast(config.DATABASE_PASSWORD),
+            host=empty_str_cast(config.DATABASE_HOST),
+            port=empty_str_cast(config.DATABASE_PORT),
+            database=empty_str_cast(config.DATABASE_NAME),
+        )
     log.info(f"Connecting to database {DATABASE_URL}")
     engine = create_engine(DATABASE_URL, pool_recycle=3600)
     conn = engine.connect()

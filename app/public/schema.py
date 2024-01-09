@@ -106,7 +106,7 @@ def connect_db(config: DatabaseSettings, admin: bool = False):
             query={"unix_sock": f"{config.DATABASE_SOCKET}/.s.PGSQL.5432"},
         ),
     else:
-        DATABASE_URL = URL.create(ç
+        DATABASE_URL = URL.create(
             empty_str_cast(config.DATABASE_PROTOCOL),
             username=empty_str_cast(config.DATABASE_USER),
             password=empty_str_cast(config.DATABASE_PASSWORD),

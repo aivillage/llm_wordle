@@ -31,7 +31,7 @@ async def root(request: Request):
         assets = json.load(f)
     js_path = assets["assets/js/index.js"]["file"]
     with SessionLocal() as session:
-        models = session.query(Model).all()
+        models = session.query(Model).filter(Model.active).all()
 
     response = templates.TemplateResponse("index.html", {"request": request, "js_path": js_path, "models": models})
     

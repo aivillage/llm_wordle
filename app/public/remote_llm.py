@@ -54,11 +54,13 @@ async def generate_text(preprompt: str, prompt: str, model: str) -> str:
                 return json_response['generation']
             elif 400 <= raw_response.status <= 599:
                 # ... raise an error.
-                log.error(f"Error generating: {raw_response.status}")
+                error = await raw_response.json()
+                log.error(f"Error generating: {raw_response.status}: {error}")
                 raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f'LLM Router API returned error status code {raw_response.status}: ')
             # ... Otherwise, if it's an unrecognized HTTP status code, then...
             else:
-                log.error(f"Error generating: {raw_response.status}")
+                error = await raw_response.json()
+                log.error(f"Error generating: {raw_response.status}: {error}")
                 raise HTTPException(HTTP_500_INTERNAL_SERVER_ERROR, f'LLM Router API returned unrecognized status code {raw_response.status}: ')
 
 

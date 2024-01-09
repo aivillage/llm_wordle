@@ -86,6 +86,7 @@ class DatabaseSettings():
     DATABASE_PROTOCOL: str
 
     def __init__(self):
+        self.DATABASE_URL = os.getenv("DATABASE_URL")
         self.DATABASE_HOST = os.getenv("DATABASE_HOST")
         self.DATABASE_PORT = os.getenv("DATABASE_PORT")
         self.DATABASE_NAME = os.getenv("DATABASE_NAME")
@@ -97,7 +98,9 @@ class DatabaseSettings():
 
 
 def connect_db(config: DatabaseSettings, admin: bool = False):
-    if config.DATABASE_SOCKET is not None:
+    if config.DATABASE_URL is not None:
+        DATABASE_URL = config.DATABASE_URL
+    elif config.DATABASE_SOCKET is not None:
         DATABASE_URL = URL.create(
             drivername=empty_str_cast(config.DATABASE_PROTOCOL),
             username=empty_str_cast(config.DATABASE_USER),

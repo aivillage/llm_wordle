@@ -104,10 +104,11 @@ async def new_challenge(request: Request):
 async def new_challenge(request: Request):
     form = ChallengeForm(request)
     await form.load_data()
+    log.info(form.__dict__)
     try:
         with SessionLocal() as session:
             model = session.query(Model).first()
-            challenge = Challenge(name=form.name, description=form.description, preprompt=form.preprompt, model=model)
+            challenge = Challenge(name=form.name, description=form.description, preprompt=form.preprompt)
             session.add(challenge)
             session.commit()
         response = RedirectResponse("/admin/", status.HTTP_302_FOUND)

@@ -4,7 +4,7 @@ services:
   llm_wordle:
     build:
       context: ../
-      dockerfile: dockers/Dockerfile.dev
+      dockerfile: dockerfiles/Dockerfile.dev
     user: root
     restart: always
     ports:

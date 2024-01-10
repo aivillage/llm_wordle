@@ -17,7 +17,7 @@ Alpine.data('llm_challenge', () => ({
     models: [],
     selected_model: "",
 
-    output: "Generated Text",
+    output: "Once the model has generated text it will show up here. Be patient! Sometimes it takes a bit",
     reason: "",
     generation_id: -1,
 

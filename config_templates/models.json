@@ -1,9 +1,9 @@
 [{
     "name": "zephyr-7b",
-    "description": "Zephyr was fined tuned of of Mistral-7b, with extensive Reinforcement Learning from Human Feedback. It should produce less problematic output, but there are always gaps in the tuning."
+    "description": "Zephyr is a fine tuned Mistral-7b model, with extensive Reinforcement Learning from Human Feedback. It should produce less problematic outputs, but there are always gaps in the tuning."
 },
 {
     "name": "falcon-7b",
-    "description": "Falcon model was just instruction tuned. The guardrails on the behavior are in the preprompt, which is easily bypassed with prompt injection. It should be more creative."
+    "description": "Falcon model is instruction tuned. The guardrails on the behavior are in the preprompt, which is easily bypassed with prompt injection. It should be more creative."
 }]
 

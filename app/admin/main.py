@@ -19,6 +19,8 @@ def load_models(path):
         for model in models:
             if session.query(Model).filter(Model.name == model["name"]).first():
                 log.info(f"Model {model['name']} already exists, skipping.")
+                if model["description"] is not None or model["description"] != "":
+                    session.query(Model).filter(Model.name == model["name"]).update({"description": model["description"]})
                 continue
             model = Model(
                 name=model["name"],

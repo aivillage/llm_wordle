@@ -13,29 +13,9 @@
       </div>
 
       <div>
-        <label for="url" class="block text-sm font-medium leading-6 text-gray-900">URL</label>
+        <label for="description" class="block text-sm font-medium leading-6 text-gray-900">Description</label>
         <div class="mt-2">
-          <input id="url" name="url" type="url" autocomplete="url" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-        </div>
-      </div>
-
-      <div>
-        <div class="flex items-center justify-between">
-          <label for="parameters" class="block text-sm font-medium leading-6 text-gray-900">Parameters</label>
-          <p class="text-sm text-gray-500 leading-6">This needs to be in JSON</p>
-        </div>
-        <div class="mt-2">
-            <textarea x-model="input" rows="6" name="parameters" id="parameters" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
-        </div>
-      </div>
-
-      <div>
-        <div class="flex items-center justify-between">
-          <label for="prompt_format" class="block text-sm font-medium leading-6 text-gray-900">Prompt Format</label>
-          <p class="text-sm text-gray-500 leading-6">The system will replace {preprompt} with the challenge preprompt, and {prompt} with the user's prompt.</p>
-        </div>
-        <div class="mt-2">
-            <textarea x-model="input" rows="6" name="prompt_format" id="prompt_format" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
+          <input id="description" name="description" type="description" autocomplete="description" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
         </div>
       </div>
 

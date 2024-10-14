@@ -89,22 +89,22 @@ class DatabaseSettings():
     DATABASE_PROTOCOL: str
 
     def __init__(self):
-        self.DATABASE_HOST = os.getenv("DATABASE_HOST")
-        self.DATABASE_PORT = os.getenv("DATABASE_PORT")
-        self.DATABASE_NAME = os.getenv("DATABASE_NAME")
-        self.DATABASE_USER = os.getenv("DATABASE_USER")
-        self.DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
-        self.DATABASE_PROTOCOL = os.getenv("DATABASE_PROTOCOL")
+        self.DATABASE_HOST = empty_str_cast(os.getenv("DATABASE_HOST"))
+        self.DATABASE_PORT = empty_str_cast(os.getenv("DATABASE_PORT"))
+        self.DATABASE_NAME = empty_str_cast(os.getenv("DATABASE_NAME"))
+        self.DATABASE_USER = empty_str_cast(os.getenv("DATABASE_USER"))
+        self.DATABASE_PASSWORD = empty_str_cast(os.getenv("DATABASE_PASSWORD"))
+        self.DATABASE_PROTOCOL = empty_str_cast(os.getenv("DATABASE_PROTOCOL"))
 
 
 def connect_db(config: DatabaseSettings, admin: bool = False):
     DATABASE_URL = URL.create(
-        empty_str_cast(config.DATABASE_PROTOCOL),
-        username=empty_str_cast(config.DATABASE_USER),
-        password=empty_str_cast(config.DATABASE_PASSWORD),
-        host=empty_str_cast(config.DATABASE_HOST),
-        port=empty_str_cast(config.DATABASE_PORT),
-        database=empty_str_cast(config.DATABASE_NAME),
+        config.DATABASE_PROTOCOL,
+        username=config.DATABASE_USER,
+        password=config.DATABASE_PASSWORD,
+        host=config.DATABASE_HOST,
+        port=config.DATABASE_PORT,
+        database=config.DATABASE_NAME,
     )
     engine = create_engine(DATABASE_URL, pool_recycle=3600)
     conn = engine.connect()
